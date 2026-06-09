@@ -9,6 +9,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./src/main/resources/db/migration/V1__Initial_schema.sql:/docker-entrypoint-initdb.d/V1__Initial_schema.sql
+      - ./src/main/resources/db/migration/V2__Add_password_to_users.sql:/docker-entrypoint-initdb.d/V2__Add_password_to_users.sql
+      - ./src/main/resources/db/migration/V3__Add_characters_table.sql:/docker-entrypoint-initdb.d/V3__Add_characters_table.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d fluento"]
       interval: 10s
@@ -27,6 +29,21 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+  migrate:
+    image: postgres:17-alpine
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: fluento
+    volumes:
+      - ./scripts/run_migrations.sh:/run_migrations.sh
+    command: sh /run_migrations.sh
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   app:
     build: .
@@ -51,6 +68,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 volumes:

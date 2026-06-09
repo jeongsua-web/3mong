@@ -21,6 +21,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(ApiError.of("USER_NOT_FOUND", e.getMessage(), 404)));
     }
 
+    @ExceptionHandler(CharacterNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCharacterNotFound(CharacterNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.fail(ApiError.of("CHARACTER_NOT_FOUND", e.getMessage(), 404)));
+    }
+
     @ExceptionHandler(ChatRoomNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleChatRoomNotFound(ChatRoomNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
