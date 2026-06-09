@@ -11,5 +11,8 @@ export const updateProfileImage = (file) => {
   });
 };
 
+export const updateSettings = ({ theme, notificationEnabled } = {}) =>
+  client.put('/users/profile', { theme, notificationEnabled });
+
 export const deleteAccount = () =>
   client.delete('/users/me');

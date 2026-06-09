@@ -20,8 +20,13 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         // 벤더 청크 분리로 초기 로딩/캐싱 개선
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom)[\\/]/.test(id)) {
+              return 'react-vendor';
+            }
+            return 'vendor';
+          }
         },
       },
     },

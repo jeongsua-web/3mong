@@ -3,16 +3,12 @@ package com.fluento.controller;
 import com.fluento.domain.chat.ChatMessage;
 import com.fluento.domain.chat.ChatMessageRepository;
 import com.fluento.domain.chat.SenderType;
-import com.fluento.domain.user.User;
-import com.fluento.domain.user.UserRepository;
 import com.fluento.dto.ApiResponse;
-import com.fluento.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
@@ -26,12 +22,10 @@ import java.util.Map;
 public class WrongAnswerController {
 
     private final ChatMessageRepository chatMessageRepository;
-    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getWrongAnswers(
-            @AuthenticationPrincipal Jwt jwt) {
-        Long userId = resolveUserId(jwt);
+            @AuthenticationPrincipal Long userId) {
 
         List<Map<String, Object>> wrongAnswers = chatMessageRepository
                 .findByRoomUserIdAndIsCorrectAndSenderType(userId, false, SenderType.USER,
@@ -46,9 +40,8 @@ public class WrongAnswerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteWrongAnswer(
-            @AuthenticationPrincipal Jwt jwt,
+            @AuthenticationPrincipal Long userId,
             @PathVariable String id) {
-        Long userId = resolveUserId(jwt);
         ChatMessage message = chatMessageRepository.findByIdAndRoomUserId(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         chatMessageRepository.delete(message);
@@ -87,10 +80,4 @@ public class WrongAnswerController {
         );
     }
 
-    private Long resolveUserId(Jwt jwt) {
-        String sub = jwt.getSubject();
-        User user = userRepository.findByGoogleId(sub)
-                .orElseThrow(() -> new UserNotFoundException(-1L));
-        return user.getId();
-    }
 }

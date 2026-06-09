@@ -1,245 +1,142 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMyProfile, updateProfileImage, deleteAccount } from '../api/user';
+import { Camera } from 'lucide-react';
+import { getMyProfile, updateProfileImage, updateSettings, deleteAccount } from '../api/user';
 import { logout } from '../api/auth';
 import { ACCESS_TOKEN, USER_ID } from '../constants/storage';
+import { getSavedTheme, saveTheme, applyTheme } from '../utils/theme';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const [profileImage, setProfileImage] = useState(null);
   const [profileName, setProfileName] = useState('사용자');
   const [profileEmail, setProfileEmail] = useState('user@example.com');
-  const [language, setLanguage] = useState('ko');
-  const [theme, setTheme] = useState('system');
+  const [theme, setTheme] = useState(getSavedTheme);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     getMyProfile()
-      .then((res) => {
-        const user = res.data.data;
-        setProfileName(user.username || '사용자');
-        setProfileEmail(user.email || '');
-        if (user.profileImageUrl) setProfileImage(user.profileImageUrl);
+      .then(res => {
+        const u = res.data.data;
+        setProfileName(u.name || '사용자');
+        setProfileEmail(u.email || '');
+        if (u.profileImageUrl) setProfileImage(u.profileImageUrl);
+        if (u.theme) { setTheme(u.theme); saveTheme(u.theme); applyTheme(u.theme); }
+        if (u.notificationEnabled != null) setNotificationsEnabled(u.notificationEnabled);
       })
       .catch(() => {
-        const savedEmail = localStorage.getItem(USER_ID);
-        if (savedEmail) setProfileEmail(savedEmail);
+        const saved = localStorage.getItem(USER_ID);
+        if (saved) setProfileEmail(saved);
       });
   }, []);
 
   const handleLogout = () => {
-    if (window.confirm('로그아웃하시겠습니까?')) {
-      logout().catch(() => {});
-      localStorage.removeItem(ACCESS_TOKEN);
-      localStorage.removeItem(USER_ID);
-      navigate('/login');
-    }
+    if (!window.confirm('로그아웃하시겠습니까?')) return;
+    logout().catch(() => {});
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(USER_ID);
+    navigate('/login');
   };
 
   const handleDeleteAccount = () => {
-    if (window.confirm('정말로 계정을 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-      deleteAccount()
-        .catch(() => {})
-        .finally(() => {
-          localStorage.clear();
-          navigate('/login');
-        });
-    }
+    if (!window.confirm('정말로 계정을 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    deleteAccount().catch(() => {}).finally(() => { localStorage.clear(); navigate('/login'); });
   };
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const originalImage = profileImage; // 롤백용
     const reader = new FileReader();
-    reader.onload = (event) => setProfileImage(event.target.result);
+    reader.onload = ev => setProfileImage(ev.target.result);
     reader.readAsDataURL(file);
-    updateProfileImage(file).catch(() => {});
+    updateProfileImage(file).catch(() => {
+      setProfileImage(originalImage); // 미리보기 롤백
+      alert('프로필 이미지 변경에 실패했습니다.');
+    });
   };
 
-  const handleFileInputClick = () => {
-    fileInputRef.current?.click();
-  };
+  const initials = profileName ? profileName[0].toUpperCase() : '?';
 
   return (
-    <>
-      {/* 🎨 CSS 스타일 구조 명확화 */}
-      <style>{`
-        /* 1. 체크박스가 선택(ON)되었을 때 슬라이더 배경색 */
-        input[type="checkbox"]:checked + span {
-          background-color: #4E3473 !important;
-        }
-        
-        /* 2. 체크박스가 선택(ON)되었을 때 하얀 동그라미 위치 이동 */
-        input[type="checkbox"]:checked + span:after {
-          left: 25px;
-        }
-        
-        /* 3. 기본(OFF) 상태의 하얀 동그라미 기본 설정 */
-        .custom-slider:after {
-          content: '';
-          position: absolute;
-          width: 22px;
-          height: 22px;
-          left: 3px;
-          top: 3px;
-          background-color: white;
-          border-radius: 50%;
-          transition: all 0.2s ease-in-out;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-      `}</style>
+    <div style={{ padding: '32px', maxWidth: 600, display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      <div style={styles.container}>
-        <div style={styles.content}>
-          <h1 style={styles.title}>설정</h1>
-
-          {/* 계정 설정 - 맨 위 */}
-          <div style={styles.accountSection}>
-            <div style={styles.profileContainer}>
-              <div style={styles.profileImageWrapper}>
-                {profileImage ? (
-                  <img src={profileImage} alt="프로필" style={styles.profileImage} />
-                ) : (
-                  <div style={styles.profileImagePlaceholder}>
-                    <span style={styles.placeholderText}>👤</span>
-                  </div>
-                )}
-                <button
-                  onClick={handleFileInputClick}
-                  style={styles.cameraButton}
-                  title="프로필 사진 변경"
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                </button>
-              </div>
-              <div style={styles.profileInfo}>
-                <h3 style={styles.profileName}>{profileName}</h3>
-                <p style={styles.profileEmail}>{profileEmail}</p>
-              </div>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleProfilePictureChange}
-              style={{ display: 'none' }}
-            />
-
-            <button onClick={handleLogout} style={styles.button}>
-              로그아웃
-            </button>
-            <button
-              onClick={handleDeleteAccount}
-              style={{ ...styles.button, ...styles.dangerButton }}
-            >
-              계정탈퇴
+      {/* Profile card */}
+      <div style={section}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            {profileImage
+              ? <img src={profileImage} alt="프로필" onError={() => setProfileImage(null)} style={{ width: 64, height: 64, borderRadius: 9999, objectFit: 'cover', border: '1px solid var(--border)' }} />
+              : <div style={{ width: 64, height: 64, borderRadius: 9999, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 22 }}>{initials}</div>
+            }
+            <button onClick={() => fileInputRef.current?.click()} style={{ position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 9999, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, color: 'var(--t2)' }}>
+              <Camera size={11} />
             </button>
           </div>
-
-          {/* 언어 설정 */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>언어 설정</h2>
-            <div style={styles.settingItem}>
-              <label style={styles.label}>앱 인터페이스 언어</label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                style={styles.select}
-              >
-                <option value="ko">한국어</option>
-                <option value="en">English</option>
-              </select>
-            </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t1)', marginBottom: 2 }}>{profileName}</div>
+            <div style={{ fontSize: 13, color: 'var(--t3)' }}>{profileEmail}</div>
           </div>
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleProfilePictureChange} style={{ display: 'none' }} />
+        </div>
 
-          {/* 테마 설정 */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>테마 설정</h2>
-            <div style={styles.settingItem}>
-              <label style={styles.label}>테마 선택</label>
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                style={styles.select}
-              >
-                <option value="light">라이트모드</option>
-                <option value="dark">다크모드</option>
-                <option value="system">시스템설정</option>
-              </select>
-            </div>
-          </div>
-
-          {/* 알림 설정 */}
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>알림 설정</h2>
-            <div style={styles.toggleItem}>
-              <label style={styles.label}>알림 활성화</label>
-              <label style={styles.switch}>
-                <input
-                  type="checkbox"
-                  checked={notificationsEnabled}
-                  onChange={(e) => setNotificationsEnabled(e.target.checked)}
-                  style={styles.checkbox}
-                />
-                {/* ✅ 클래스명을 부여해 동 동그라미 속성이 겹치지 않도록 방어 */}
-                <span className="custom-slider" style={styles.slider}></span>
-              </label>
-            </div>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button onClick={handleLogout} style={btnBase}>로그아웃</button>
+          <button onClick={handleDeleteAccount} style={{ ...btnBase, background: 'var(--error-l)', color: 'var(--error)' }}>계정 탈퇴</button>
         </div>
       </div>
-    </>
+
+      {/* Theme */}
+      <div style={section}>
+        <h2 style={sectionTitle}>테마 설정</h2>
+        <div>
+          <label style={labelStyle}>테마 선택</label>
+          <select
+            value={theme}
+            onChange={e => {
+              const t = e.target.value;
+              setTheme(t);
+              saveTheme(t);
+              applyTheme(t);
+              updateSettings({ theme: t }).catch(() => {});
+            }}
+            style={selectStyle}
+          >
+            <option value="light">라이트모드</option>
+            <option value="dark">다크모드</option>
+            <option value="system">시스템 설정</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div style={section}>
+        <h2 style={sectionTitle}>알림 설정</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 13, color: 'var(--t2)' }}>알림 활성화</span>
+          <button
+            type="button"
+            onClick={() => {
+              const next = !notificationsEnabled;
+              setNotificationsEnabled(next);
+              updateSettings({ notificationEnabled: next }).catch(() => {});
+            }}
+            style={{ width: 44, height: 24, borderRadius: 9999, border: 'none', cursor: 'pointer', background: notificationsEnabled ? 'var(--accent)' : 'var(--border)', transition: 'background 0.2s', position: 'relative', padding: 0 }}
+          >
+            <div style={{ width: 18, height: 18, borderRadius: 9999, background: '#fff', position: 'absolute', top: 3, left: notificationsEnabled ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+          </button>
+        </div>
+      </div>
+
+    </div>
   );
 };
 
-const styles = {
-  container: { flex: 1, backgroundColor: '#fff', height: '100%', overflow: 'auto', marginTop: '-40px', paddingTop: '40px' },
-  content: { maxWidth: '100%', margin: '0', padding: '20px 40px', paddingBottom: '40px' },
-  title: { fontSize: '28px', fontWeight: '600', color: '#333', marginBottom: '30px', marginTop: '0' },
-  accountSection: { backgroundColor: '#faf9fc', borderRadius: '12px', padding: '30px', marginBottom: '30px', border: '2px solid #4E3473' },
-  profileContainer: { display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '25px' },
-  profileImageWrapper: { flexShrink: 0, position: 'relative' },
-  profileImage: { width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #4E3473' },
-  profileImagePlaceholder: { width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#eee9f5', border: '3px solid #4E3473', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  placeholderText: { fontSize: '50px' },
-  profileInfo: { flex: 1 },
-  profileName: { fontSize: '18px', fontWeight: '600', color: '#333', margin: '0 0 5px 0' },
-  profileEmail: { fontSize: '14px', color: '#999', margin: '0' },
-  cameraButton: { position: 'absolute', bottom: '0', right: '0', width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#fff', border: '1.5px solid #4E3473', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0', color: '#4E3473', transition: 'transform 0.2s' },
-  section: { marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #e0e0e0' },
-  sectionTitle: { fontSize: '16px', fontWeight: '600', color: '#333', marginBottom: '15px', marginTop: '0' },
-  settingItem: { marginBottom: '15px' },
-  toggleItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  label: { fontSize: '14px', color: '#555', marginBottom: '8px', display: 'block', fontWeight: '500' },
-  select: { width: '100%', padding: '10px 12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '6px', backgroundColor: '#fff', color: '#333', cursor: 'pointer', boxSizing: 'border-box', outline: 'none' },
-  button: { width: '100%', padding: '12px 16px', marginBottom: '10px', fontSize: '14px', fontWeight: '500', border: 'none', borderRadius: '6px', backgroundColor: '#4E3473', color: '#fff', cursor: 'pointer' },
-  dangerButton: { backgroundColor: '#FF6B6B' },
-  switch: { position: 'relative', display: 'inline-block', width: '50px', height: '28px', cursor: 'pointer' },
-  checkbox: { opacity: '0', width: '0', height: '0' },
-  
-  // ✅ 스위치 배경 스타일 정밀 가공 (OFF일 때는 차분한 회색)
-  slider: {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    right: '0',
-    bottom: '0',
-    backgroundColor: '#E0E0E0', // 👈 미사용 상태 가독성 좋은 밝은 회색
-    borderRadius: '28px',
-    transition: 'background-color 0.2s ease',
-  },
-};
+const section = { background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--border)', padding: '20px 24px' };
+const sectionTitle = { fontSize: 13, fontWeight: 600, color: 'var(--t1)', marginBottom: 14 };
+const labelStyle = { display: 'block', fontSize: 12, color: 'var(--t2)', marginBottom: 6 };
+const selectStyle = { width: '100%', padding: '9px 12px', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--t1)', background: 'var(--surface)', outline: 'none', cursor: 'pointer' };
+const btnBase = { width: '100%', padding: '10px 14px', fontSize: 13, fontWeight: 500, border: 'none', borderRadius: 8, background: 'var(--accent-l)', color: 'var(--accent)', cursor: 'pointer' };
 
 export default SettingsPage;

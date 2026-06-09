@@ -2,8 +2,8 @@ import client from './client';
 import { ACCESS_TOKEN } from '../constants/storage';
 
 // 채팅방 목록 조회
-export const getChatRooms = () =>
-  client.get('/chat/rooms');
+export const getChatRooms = (params = {}) =>
+  client.get('/chat/rooms', { params });
 
 // 채팅방 상세 조회
 export const getChatRoom = (roomId) =>

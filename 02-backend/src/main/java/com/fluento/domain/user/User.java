@@ -26,6 +26,9 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String password;
+
     private String profileImageUrl;
 
     @Column(nullable = false)
@@ -55,6 +58,10 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void linkGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public void updateProfile(String name, String profileImageUrl) {

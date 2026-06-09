@@ -1,160 +1,118 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, MoreVertical, Pin } from 'lucide-react';
 import { getChatRooms, deleteChatRoom, pinChatRoom } from '../api/chat';
+
+const AVATAR_COLORS = ['#6366F1', '#0891B2', '#059669', '#B45309', '#BE185D', '#7C3AED'];
+const avatarColor = (name) => AVATAR_COLORS[(name || '?').charCodeAt(0) % AVATAR_COLORS.length];
 
 const ChatListPage = () => {
   const navigate = useNavigate();
-
   const [chatRooms, setChatRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpenId, setMenuOpenId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const mousePos = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     getChatRooms()
-      .then((res) => setChatRooms(res.data.data.rooms))
-      .catch(() => {
-        // 백엔드 연결 전 임시 mock 데이터
-        setChatRooms([
-          { id: 1, characterName: 'Alex', title: 'Alex와 대화', lastMessageAt: null, isPinned: true },
-          { id: 2, characterName: 'Mina', title: 'Mina와 대화', lastMessageAt: null, isPinned: false },
-          { id: 3, characterName: 'Katherine', title: 'Katherine과 대화', lastMessageAt: null, isPinned: false },
-        ]);
-      })
+      .then(res => setChatRooms(res.data.data.rooms))
+      .catch(() => setChatRooms([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const [menuOpenId, setMenuOpenId] = useState(null);
-  const mousePos = useRef({ x: 0, y: 0 });
+  const sorted = [...chatRooms].sort((a, b) => b.isPinned - a.isPinned);
+  const filtered = sorted.filter(r => r.characterName?.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // 검색어 상태
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const sortedRooms = [...chatRooms].sort((a, b) => b.isPinned - a.isPinned);
-
-  // 고정 정렬된 방 목록에서 검색어 매칭 필터링
-  const filteredRooms = sortedRooms.filter(room =>
-    room.characterName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleMouseDown = (e) => { mousePos.current = { x: e.clientX, y: e.clientY }; };
-
+  const handleMouseDown = e => { mousePos.current = { x: e.clientX, y: e.clientY }; };
   const handleMouseUp = (e, id) => {
-    const diffX = Math.abs(e.clientX - mousePos.current.x);
-    const diffY = Math.abs(e.clientY - mousePos.current.y);
-    if (diffX < 5 && diffY < 5) navigate(`/chat/${id}`);
+    if (Math.abs(e.clientX - mousePos.current.x) < 5 && Math.abs(e.clientY - mousePos.current.y) < 5) navigate(`/chat/${id}`);
   };
-
-  const toggleMenu = (e, id) => { e.stopPropagation(); setMenuOpenId(menuOpenId === id ? null : id); };
 
   const handleDelete = (e, id) => {
     e.stopPropagation();
     if (!window.confirm('삭제할까?')) return;
-    deleteChatRoom(id)
-      .then(() => setChatRooms(prev => prev.filter(r => r.id !== id)))
-      .catch(() => alert('채팅방 삭제에 실패했습니다.'));
+    deleteChatRoom(id).then(() => setChatRooms(p => p.filter(r => r.id !== id))).catch(() => alert('채팅방 삭제에 실패했습니다.'));
   };
 
   const handleTogglePin = (e, id) => {
     e.stopPropagation();
-    const room = chatRooms.find(r => r.id === id);
-    const newPinned = !room.isPinned;
-    pinChatRoom(id, newPinned)
-      .then(() => setChatRooms(prev => prev.map(r => r.id === id ? { ...r, isPinned: newPinned } : r)))
-      .catch(() => alert('고정 변경에 실패했습니다.'));
+    const r = chatRooms.find(r => r.id === id);
+    const v = !r.isPinned;
+    pinChatRoom(id, v).then(() => setChatRooms(p => p.map(r => r.id === id ? { ...r, isPinned: v } : r))).catch(() => alert('고정 변경에 실패했습니다.'));
+  };
+
+  const formatTime = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
   };
 
   return (
-    <div style={styles.container} onClick={() => setMenuOpenId(null)}>
-      
-      {/* 상단 우측 검색 바 영역 */}
-      <div style={styles.topSection}>
-        <div style={styles.searchWrapper}>
-          <input 
-            type="text" 
-            placeholder="채팅방 검색" 
-            style={styles.searchInput} 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-          />
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--surface)' }} onClick={() => setMenuOpenId(null)}>
+
+      {/* Top bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 }}>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--t1)' }}>AI 채팅</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg)', borderRadius: 8, padding: '7px 12px', border: '1px solid var(--border)', width: 220 }}>
+          <Search size={14} color="var(--t3)" strokeWidth={2} />
+          <input type="text" placeholder="채팅방 검색" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: 'var(--t1)', width: '100%' }} />
         </div>
       </div>
 
-      <div style={styles.listWrapper}>
-        {loading && <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>불러오는 중...</div>}
-        {filteredRooms.map((room) => (
-          <div key={room.id} style={styles.chatItem} onMouseDown={handleMouseDown} onMouseUp={(e) => handleMouseUp(e, room.id)}>
-
-            <div style={styles.profileImage}>
-              <span style={{ fontSize: '24px', color: '#9e80b6' }}>{room.characterName?.[0] ?? '?'}</span>
+      {/* List */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {loading && <div style={{ padding: '48px 32px', textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>불러오는 중...</div>}
+        {filtered.map(room => (
+          <div key={room.id} onMouseDown={handleMouseDown} onMouseUp={e => handleMouseUp(e, room.id)}
+            style={{ display: 'flex', alignItems: 'center', height: 72, padding: '0 32px', borderBottom: '1px solid var(--border)', cursor: 'pointer', background: 'var(--surface)', transition: 'background 0.1s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
+          >
+            {/* Avatar */}
+            <div style={{ width: 40, height: 40, borderRadius: 9999, background: avatarColor(room.characterName), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: 15, flexShrink: 0, marginRight: 14 }}>
+              {room.characterName?.[0] ?? '?'}
             </div>
 
-            <div style={styles.infoSection}>
-              <div style={styles.nameRow}>
-                <span style={styles.userName}>
-                  {room.characterName}
-                  {room.isPinned && <span style={styles.pinIcon}>📌</span>}
-                </span>
-
-                <div style={styles.menuContainer}>
-                  <span style={styles.moreIcon} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => toggleMenu(e, room.id)}>⋮</span>
-                  {menuOpenId === room.id && (
-                    <div style={styles.dropdown} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                      <div style={styles.menuItem} onClick={(e) => handleTogglePin(e, room.id)}>{room.isPinned ? "고정 해제" : "채팅 고정"}</div>
-                      <div style={{ ...styles.menuItem, color: '#ff4d4f', borderBottom: 'none' }} onClick={(e) => handleDelete(e, room.id)}>채팅 삭제</div>
-                    </div>
-                  )}
-                </div>
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)' }}>{room.characterName}</span>
+                {room.isPinned && <Pin size={12} color="var(--accent)" fill="var(--accent)" />}
               </div>
+              <span style={{ fontSize: 12, color: 'var(--t3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{room.title}</span>
+            </div>
 
-              <div style={styles.msgRow}>
-                <span style={styles.lastMsg}>{room.title}</span>
-                <span style={styles.timeText}>
-                  {room.lastMessageAt ? new Date(room.lastMessageAt).toLocaleDateString() : ''}
-                </span>
+            {/* Time + Menu */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, marginLeft: 12, flexShrink: 0 }}>
+              <span style={{ fontSize: 11, color: 'var(--t3)' }}>{formatTime(room.lastMessageAt)}</span>
+              <div style={{ position: 'relative' }} onMouseDown={e => e.stopPropagation()}>
+                <button
+                  onClick={e => { e.stopPropagation(); setMenuOpenId(menuOpenId === room.id ? null : room.id); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', padding: '2px 4px', borderRadius: 4, display: 'flex', alignItems: 'center' }}
+                >
+                  <MoreVertical size={15} />
+                </button>
+                {menuOpenId === room.id && (
+                  <div style={{ position: 'absolute', top: 24, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--sh-lg)', zIndex: 100, width: 130, overflow: 'hidden' }} onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+                    <div style={menuItem} onClick={e => handleTogglePin(e, room.id)}>{room.isPinned ? '고정 해제' : '채팅 고정'}</div>
+                    <div style={{ ...menuItem, color: 'var(--error)', borderBottom: 'none' }} onClick={e => handleDelete(e, room.id)}>채팅 삭제</div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         ))}
+        {!loading && filtered.length === 0 && (
+          <div style={{ padding: '64px 32px', textAlign: 'center', color: 'var(--t3)', fontSize: 13 }}>채팅방이 없습니다.</div>
+        )}
       </div>
     </div>
   );
 };
 
-const styles = {
-  container: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff', height: '100%', marginTop: '-40px' },
-  topSection: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '20px 40px', borderBottom: '1px solid #eee', backgroundColor: '#fff' },
-  searchWrapper: { backgroundColor: '#f0f0f0', borderRadius: '20px', padding: '8px 15px', width: '220px', border: '1px solid #eee' },
-  searchInput: { border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px' },
-
-  listWrapper: { flex: 1, overflowY: 'auto' },
-  
-  chatItem: {
-    display: 'flex',
-    alignItems: 'center',
-    height: '115px',
-    padding: '0 40px',
-    borderBottom: '1px solid #eee',
-    cursor: 'pointer',
-    position: 'relative',
-    boxSizing: 'border-box'
-  },
-  
-  profileImage: { width: '65px', height: '65px', borderRadius: '50%', backgroundColor: '#ede7f6', marginRight: '25px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-
-  infoSection: { flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 0 },
-  nameRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  
-  userName: { fontSize: '24px', fontWeight: '400', color: '#4E3473', display: 'inline-flex', alignItems: 'center' }, 
-  pinIcon: { fontSize: '18px', marginLeft: '6px' },
-  
-  menuContainer: { position: 'relative', display: 'flex', alignItems: 'center' },
-  moreIcon: { fontSize: '32px', color: '#000', cursor: 'pointer', padding: '0 10px', display: 'inline-flex', alignItems: 'center' },
-  
-  dropdown: { position: 'absolute', top: '40px', right: '0', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 100, width: '140px', overflow: 'hidden' },
-  menuItem: { padding: '14px', fontSize: '15px', textAlign: 'center', borderBottom: '1px solid #f5f5f5', cursor: 'pointer', color: '#333' },
-  
-  msgRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' },
-  lastMsg: { fontSize: '18px', color: '#666', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  timeText: { fontSize: '16px', color: '#888', flexShrink: 0 }
-};
+const menuItem = { padding: '10px 14px', fontSize: 13, cursor: 'pointer', color: 'var(--t1)', borderBottom: '1px solid var(--border)' };
 
 export default ChatListPage;

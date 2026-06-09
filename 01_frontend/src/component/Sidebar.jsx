@@ -1,44 +1,68 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, Users, MessageSquare, FileText, Settings, ChevronLeft, Menu } from 'lucide-react';
 
-const Sidebar = () => {
+const NAV = [
+  { path: '/home', label: '홈', Icon: Home },
+  { path: '/friends', label: 'AI 친구', Icon: Users },
+  { path: '/chat-list', label: 'AI 채팅', Icon: MessageSquare },
+  { path: '/wrong-answer', label: '오답노트', Icon: FileText },
+];
+
+const Sidebar = ({ isOpen, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   return (
-    <div className="sidebar">
-      <div className="logo">Fluento</div>
+    <aside className="sidebar">
+      {isOpen ? (
+        <div className="sidebar-logo" onClick={() => navigate('/home')}>
+          <div className="sidebar-logo-mark">F</div>
+          <span className="sidebar-logo-text">Fluento</span>
+          <button
+            className="sidebar-toggle-btn"
+            onClick={e => { e.stopPropagation(); onToggle(); }}
+            title="사이드바 닫기"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        </div>
+      ) : (
+        <div className="sidebar-logo sidebar-logo-collapsed">
+          <button
+            className="sidebar-hamburger-btn"
+            onClick={onToggle}
+            title="사이드바 열기"
+          >
+            <Menu size={18} />
+          </button>
+        </div>
+      )}
 
-      <button
-        className={location.pathname === '/home' ? 'active' : ''}
-        onClick={() => navigate('/home')}
-      >
-        홈
-      </button>
+      <nav className="sidebar-nav">
+        {NAV.map(({ path, label, Icon }) => (
+          <button
+            key={path}
+            className={`sidebar-nav-btn${location.pathname === path ? ' active' : ''}`}
+            onClick={() => navigate(path)}
+            title={!isOpen ? label : undefined}
+          >
+            <span className="nav-icon"><Icon size={18} /></span>
+            {isOpen && label}
+          </button>
+        ))}
+      </nav>
 
-      <button
-        className={location.pathname === '/friends' ? 'active' : ''}
-        onClick={() => navigate('/friends')}
-      >
-        AI 친구 목록
-      </button>
-
-      <button
-        className={location.pathname === '/chat-list' ? 'active' : ''}
-        onClick={() => navigate('/chat-list')}
-      >
-        AI 채팅
-      </button>
-
-      <div
-        className="settings-text"
-        onClick={() => navigate('/settings')}
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.64l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.22-.07.5.12.64l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.64l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.5-.12-.64l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-        </svg>
+      <div className="sidebar-footer">
+        <button
+          className={`sidebar-nav-btn${location.pathname === '/settings' ? ' active' : ''}`}
+          onClick={() => navigate('/settings')}
+          title={!isOpen ? '설정' : undefined}
+        >
+          <span className="nav-icon"><Settings size={18} /></span>
+          {isOpen && '설정'}
+        </button>
       </div>
-    </div>
+    </aside>
   );
 };
 
