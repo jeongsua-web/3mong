@@ -1,0 +1,55 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: Fluento
+    - button "홈" [ref=e6] [cursor=pointer]
+    - button "AI 친구 목록" [ref=e7] [cursor=pointer]
+    - button "AI 채팅" [ref=e8] [cursor=pointer]
+    - img [ref=e10] [cursor=pointer]
+  - generic [ref=e12]:
+    - heading "어서오세요 사용자님!" [level=1] [ref=e14]
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - heading "오늘의 목표에요" [level=2] [ref=e18]
+          - generic [ref=e19]:
+            - generic [ref=e20]:
+              - checkbox "10분간 영어학습 진행하기!" [ref=e21]
+              - text: 10분간 영어학습 진행하기!
+            - generic [ref=e22]:
+              - checkbox "단어 20개 완벽하게 암기하기!" [ref=e23]
+              - text: 단어 20개 완벽하게 암기하기!
+            - generic [ref=e24]:
+              - checkbox "오답노트 다시 확인하기!" [ref=e25]
+              - text: 오답노트 다시 확인하기!
+            - checkbox [ref=e27]
+            - checkbox [ref=e29]
+        - generic [ref=e31]:
+          - paragraph [ref=e32]: 학습을 시작해요!
+          - button "START!" [ref=e33] [cursor=pointer]:
+            - text: START!
+            - img [ref=e34]
+      - separator [ref=e36]
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - heading "오늘의 표현 하나 배워보세요" [level=2] [ref=e39]
+          - generic [ref=e40]:
+            - paragraph [ref=e41]:
+              - strong [ref=e42]: Don't even think about it.
+            - paragraph [ref=e43]: 꿈도 꾸지마!
+        - generic [ref=e44]:
+          - heading "동기부여 가득!" [level=2] [ref=e45]
+          - paragraph [ref=e47]:
+            - text: "\"힘들 때 어떻게 건너갔죠?"
+            - text: 그냥 힘들어 했더니 지나갔어요!"
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - heading "📝 오답노트 오답노트로 이동" [level=2] [ref=e50]:
+            - text: 📝 오답노트
+            - button "오답노트로 이동" [ref=e51] [cursor=pointer]:
+              - img [ref=e52]
+          - generic [ref=e54]:
+            - paragraph [ref=e55]: "마지막 학습: -"
+            - paragraph [ref=e56]: 오답 0개가 복습을 기다리고 있어요!
+        - generic [ref=e57]:
+          - heading "📖 단어장" [level=2] [ref=e58]
+          - paragraph [ref=e60]: ☁️ sky 하늘

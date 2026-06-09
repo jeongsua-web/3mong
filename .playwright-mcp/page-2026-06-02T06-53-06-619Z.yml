@@ -1,0 +1,31 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - button "Menu button" [ref=e8] [cursor=pointer]:
+        - img "hamburger menu" [ref=e9]
+      - link "Login" [ref=e12] [cursor=pointer]:
+        - /url: /v4/login.jsp
+  - generic [ref=e13]:
+    - main [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - heading "Public Messages" [level=4] [ref=e18]
+          - button "Pause Button" [ref=e20] [cursor=pointer]:
+            - img [ref=e21]
+          - button "Delete Button" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - generic [ref=e28]:
+            - textbox "inbox field" [ref=e29]
+            - button "GO" [ref=e30] [cursor=pointer]
+        - table [ref=e33]:
+          - rowgroup [ref=e34]:
+            - row "From Subject Received" [ref=e35] [cursor=pointer]:
+              - cell "From" [ref=e36]
+              - cell "Subject" [ref=e37]
+              - cell "Received" [ref=e38]
+        - generic [ref=e43]:
+          - table:
+            - rowgroup
+    - link [ref=e46] [cursor=pointer]:
+      - /url: /comic/comic.jsp
+      - img [ref=e47]

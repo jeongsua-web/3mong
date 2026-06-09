@@ -1,0 +1,14 @@
+- generic [active] [ref=e1]:
+  - main [ref=e4]:
+    - generic [ref=e8]: © 2026 Amazon Web Services, Inc. or its affiliates. All rights reserved.
+    - generic [ref=e10]:
+      - button "Provide feedback" [ref=e13] [cursor=pointer]
+      - button "Multi-session disabled" [ref=e20] [cursor=pointer]:
+        - text: Multi-session disabled
+        - generic [ref=e21]:
+          - img
+      - button "Language English" [ref=e28] [cursor=pointer]:
+        - text: English
+        - generic [ref=e29]:
+          - img
+  - alert [ref=e30]

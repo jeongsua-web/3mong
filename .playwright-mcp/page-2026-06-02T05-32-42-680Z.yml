@@ -1,0 +1,23 @@
+- generic [ref=e3]:
+  - heading "Fluento" [level=1] [ref=e5]
+  - generic [ref=e6]:
+    - heading "회원가입" [level=2] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: 사용자 이름
+        - textbox "홍길동" [ref=e11]: 테스트유저
+      - generic [ref=e12]:
+        - generic [ref=e13]: 이메일
+        - textbox "example@fluento.ai" [ref=e14]: testuser_fluento@mailinator.com
+      - generic [ref=e15]:
+        - generic [ref=e16]: 비밀번호
+        - textbox "8자 이상" [ref=e17]: Test1234!
+      - generic [ref=e18]:
+        - generic [ref=e19]: 비밀번호 확인
+        - textbox "비밀번호 재입력" [ref=e20]: Test1234!
+      - paragraph [ref=e24]: 회원가입에 실패했습니다. 다시 시도해주세요.
+      - button "가입하기" [ref=e21] [cursor=pointer]
+    - generic [ref=e22]:
+      - text: 이미 계정이 있으신가요?
+      - link "로그인" [ref=e23] [cursor=pointer]:
+        - /url: /login

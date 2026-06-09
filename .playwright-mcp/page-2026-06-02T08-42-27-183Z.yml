@@ -1,0 +1,13 @@
+- generic [ref=e3]:
+  - heading "Fluento" [level=1] [ref=e5]
+  - generic [ref=e6]:
+    - heading "이메일 인증" [level=2] [ref=e24]
+    - generic [ref=e8]:
+      - paragraph [ref=e25]:
+        - strong [ref=e26]: fluentotest602@mailinator.com
+        - text: 으로 인증 코드를 보냈습니다.
+      - generic [ref=e12]:
+        - generic [ref=e13]: 인증 코드
+        - textbox "코드 6자리 입력" [ref=e27]
+      - button "인증 완료" [ref=e28] [cursor=pointer]
+      - button "돌아가기" [ref=e29] [cursor=pointer]

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Fluento AWS 인프라 아키텍처</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #fff;
+    padding: 40px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 48px;
+    font-size: 13px;
+  }
+
+  /* 전체 레이아웃 */
+  .arch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* 각 레이어 행 */
+  .layer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* 컴포넌트 박스 */
+  .node {
+    border-radius: 14px;
+    padding: 20px 28px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 160px;
+  }
+  .node .icon  { font-size: 32px; }
+  .node .name  { font-size: 15px; font-weight: 700; }
+  .node .desc  { font-size: 11px; opacity: 0.65; line-height: 1.5; }
+  .node .tag   {
+    font-size: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-top: 2px;
+    color: #aaa;
+  }
+
+  /* 색상 테마 */
+  .node.frontend  { background: #1a2e4a; border: 2px solid #3b82f6; }
+  .node.backend   { background: #1a2e1a; border: 2px solid #22c55e; }
+  .node.auth      { background: #2a1e3a; border: 2px solid #a855f7; }
+  .node.db        { background: #2e2a14; border: 2px solid #f59e0b; }
+  .node.cache     { background: #2e1a1a; border: 2px solid #ef4444; }
+  .node.ai        { background: #2a1e3a; border: 2px solid #a855f7; }
+
+  /* 수직 화살표 */
+  .v-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .v-line {
+    width: 2px;
+    height: 36px;
+    background: linear-gradient(to bottom, #444, #666);
+    position: relative;
+  }
+  .v-line::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: -4px;
+    border: 5px solid transparent;
+    border-top-color: #666;
+  }
+  .v-label {
+    font-size: 11px;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  /* 수평 화살표 */
+  .h-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+  }
+  .h-line {
+    width: 44px;
+    height: 2px;
+    background: linear-gradient(to right, #444, #666);
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .h-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border: 5px solid transparent;
+    border-left-color: #666;
+  }
+  .h-label { font-size: 10px; color: #555; white-space: nowrap; }
+
+  /* EC2 그룹 박스 */
+  .ec2-group {
+    border: 2px dashed #22c55e;
+    border-radius: 20px;
+    padding: 24px 32px;
+    position: relative;
+    background: rgba(34,197,94,0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .ec2-label {
+    position: absolute;
+    top: -14px;
+    left: 24px;
+    background: #0f1117;
+    padding: 0 10px;
+    font-size: 12px;
+    color: #22c55e;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  /* DB 행 - 수평으로 나열 */
+  .db-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 0;
+  }
+
+  /* 범례 */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #888;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Fluento AWS 인프라 아키텍처</h1>
+<p class="subtitle">클라우드 배포 구성도 — AWS 서울 리전 (ap-northeast-2)</p>
+
+<div class="arch">
+
+  <!-- 1. 사용자 -->
+  <div class="layer">
+    <div class="node frontend">
+      <div class="icon">👤</div>
+      <div class="name">사용자</div>
+      <div class="desc">Mobile / Web</div>
+    </div>
+  </div>
+
+  <!-- 화살표 -->
+  <div class="v-arrow">
+    <div class="v-line"></div>
+    <div class="v-label">HTTPS</div>
+  </div>
+
+  <!-- 2. 프론트엔드 -->
+  <div class="layer">
+    <div class="node frontend">
+      <div class="icon">⚛️</div>
+      <div class="name">React 앱</div>
+      <div class="desc">프론트엔드 빌드 파일</div>
+      <div class="tag">AWS S3</div>
+    </div>
+  </div>
+
+  <!-- 화살표 -->
+  <div class="v-arrow">
+    <div class="v-line"></div>
+    <div class="v-label">API 요청 + JWT</div>
+  </div>
+
+  <!-- 3. 인증 -->
+  <div class="layer" style="gap: 20px;">
+    <div class="node auth">
+      <div class="icon">🔐</div>
+      <div class="name">Google OAuth</div>
+      <div class="desc">소셜 로그인</div>
+      <div class="tag">Google Cloud</div>
+    </div>
+    <div class="h-arrow">
+      <div class="h-line"></div>
+      <div class="h-label">JWT 발급</div>
+    </div>
+    <div class="node auth">
+      <div class="icon">🛡️</div>
+      <div class="name">AWS Cognito</div>
+      <div class="desc">JWT 발급 / 검증<br>User Pool: fluento-users</div>
+      <div class="tag">AWS Cognito</div>
+    </div>
+  </div>
+
+  <!-- 화살표 -->
+  <div class="v-arrow">
+    <div class="v-line"></div>
+    <div class="v-label">인증 완료 후 API 처리</div>
+  </div>
+
+  <!-- 4. EC2 그룹 (백엔드 + DB) -->
+  <div class="ec2-group">
+    <div class="ec2-label">AWS EC2 (t3.medium · Amazon Linux 2023)</div>
+
+    <!-- Spring Boot -->
+    <div class="layer">
+      <div class="node backend" style="min-width: 220px;">
+        <div class="icon">🍃</div>
+        <div class="name">Spring Boot 서버</div>
+        <div class="desc">REST API · SSE 스트리밍<br>레벨 판단 · 문장 평가</div>
+        <div class="tag">Java 17 · Spring Boot 4.0</div>
+      </div>
+    </div>
+
+    <!-- 수직 화살표 -->
+    <div class="v-arrow">
+      <div class="v-line"></div>
+    </div>
+
+    <!-- DB Row -->
+    <div class="db-row">
+
+      <div class="node db">
+        <div class="icon">🐘</div>
+        <div class="name">PostgreSQL</div>
+        <div class="desc">유저 · 채팅방<br>메시지 영구 저장</div>
+        <div class="tag">PostgreSQL 18</div>
+      </div>
+
+      <div class="h-arrow">
+        <div class="h-line"></div>
+      </div>
+
+      <div class="node cache">
+        <div class="icon">⚡</div>
+        <div class="name">Redis</div>
+        <div class="desc">레벨 점수 캐시<br>최근 5개 · 7일 만료</div>
+        <div class="tag">Redis (Lettuce)</div>
+      </div>
+
+      <div class="h-arrow">
+        <div class="h-line"></div>
+      </div>
+
+      <div class="node frontend" style="border-color:#38bdf8;">
+        <div class="icon">🖼️</div>
+        <div class="name">이미지 저장</div>
+        <div class="desc">채팅 이미지 파일<br>Pre-signed URL</div>
+        <div class="tag">AWS S3</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 화살표 -->
+  <div class="v-arrow">
+    <div class="v-line"></div>
+    <div class="v-label">AI API 호출</div>
+  </div>
+
+  <!-- 5. AI -->
+  <div class="layer">
+    <div class="node ai" style="min-width: 220px;">
+      <div class="icon">🤖</div>
+      <div class="name">OpenAI GPT-4o</div>
+      <div class="desc">AI 대화 응답 · 레벨 판단 · 문장 평가</div>
+      <div class="tag">OpenAI API</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 범례 -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> 프론트엔드</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div> 백엔드 (EC2)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a855f7;"></div> 인증</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> 데이터베이스</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> 캐시</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#38bdf8;"></div> 스토리지</div>
+</div>
+
+</body>
+</html>

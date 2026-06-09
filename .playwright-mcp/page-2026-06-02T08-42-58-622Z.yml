@@ -1,0 +1,35 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - button "Menu button" [ref=e8] [cursor=pointer]:
+        - img "hamburger menu" [ref=e9]
+      - link "Login" [ref=e12] [cursor=pointer]:
+        - /url: /v4/login.jsp
+  - generic [ref=e13]:
+    - main [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - heading "Public Messages" [level=4] [ref=e18]
+          - button "Pause Button" [ref=e20] [cursor=pointer]:
+            - img [ref=e21]
+          - button "Delete Button" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - generic [ref=e28]:
+            - textbox "inbox field" [ref=e29]: fluentotest602
+            - button "GO" [ref=e30] [cursor=pointer]
+        - table [ref=e33]:
+          - rowgroup [ref=e34]:
+            - row "From Subject Received" [ref=e35] [cursor=pointer]:
+              - cell "From" [ref=e36]
+              - cell "Subject" [ref=e37]
+              - cell "Received" [ref=e38]
+        - table [ref=e48]:
+          - rowgroup [ref=e49]:
+            - row "no-reply@verificationemail.com Your verification code just now" [ref=e50] [cursor=pointer]:
+              - cell [ref=e51]
+              - cell "no-reply@verificationemail.com" [ref=e54]
+              - cell "Your verification code" [ref=e55]
+              - cell "just now" [ref=e56]
+    - link [ref=e46] [cursor=pointer]:
+      - /url: /comic/comic.jsp
+      - img [ref=e47]

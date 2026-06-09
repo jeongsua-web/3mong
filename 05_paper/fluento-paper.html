@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluento: AI 기반 적응형 영어 회화 학습 시스템 설계 및 구현</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Nanum Myeongjo", "Batang", "Times New Roman", serif;
+      font-size: 11pt;
+      line-height: 1.8;
+      color: #1a1a1a;
+      background: #f5f5f5;
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 72px 80px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
+
+    /* ── 제목 영역 ── */
+    .paper-title {
+      text-align: center;
+      font-size: 16pt;
+      font-weight: bold;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .paper-subtitle {
+      text-align: center;
+      font-size: 10pt;
+      color: #555;
+      margin-bottom: 24px;
+    }
+    .author-block {
+      text-align: center;
+      font-size: 10pt;
+      margin-bottom: 6px;
+    }
+    .affiliation {
+      text-align: center;
+      font-size: 9pt;
+      color: #666;
+      margin-bottom: 32px;
+    }
+
+    hr.divider { border: none; border-top: 1.5px solid #4E3473; margin: 28px 0; }
+    hr.thin    { border: none; border-top: 1px solid #ddd;     margin: 20px 0; }
+
+    /* ── 초록 ── */
+    .abstract-box {
+      background: #f8f6fc;
+      border-left: 4px solid #4E3473;
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      border-radius: 0 6px 6px 0;
+    }
+    .abstract-box .label {
+      font-weight: bold;
+      font-size: 10pt;
+      color: #4E3473;
+      margin-bottom: 6px;
+    }
+    .abstract-box p {
+      font-size: 10pt;
+      line-height: 1.7;
+    }
+
+    /* ── 섹션 헤딩 ── */
+    h2 {
+      font-size: 12pt;
+      font-weight: bold;
+      color: #2c1e4a;
+      margin: 36px 0 12px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #4E3473;
+    }
+    h3 {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #3a2560;
+      margin: 24px 0 8px;
+    }
+    h4 {
+      font-size: 10.5pt;
+      font-weight: bold;
+      color: #4E3473;
+      margin: 16px 0 6px;
+    }
+
+    p { margin-bottom: 10px; }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 10px;
+    }
+    li { margin-bottom: 4px; }
+
+    /* ── 표 ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      font-size: 9.5pt;
+    }
+    th {
+      background: #4E3473;
+      color: #fff;
+      padding: 7px 10px;
+      text-align: left;
+      font-weight: bold;
+    }
+    td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #e0d9f0;
+    }
+    tr:nth-child(even) td { background: #faf8ff; }
+
+    /* ── 코드 블록 ── */
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: "D2Coding", "Consolas", monospace;
+      font-size: 9pt;
+      padding: 16px 18px;
+      border-radius: 6px;
+      margin: 12px 0 16px;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    code {
+      font-family: "D2Coding", "Consolas", monospace;
+      background: #f0ecf8;
+      color: #4E3473;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 9.5pt;
+    }
+    pre code { background: none; color: inherit; padding: 0; font-size: 9pt; }
+
+    /* ── JSON 블록 ── */
+    .json-block {
+      background: #1e1e2e;
+      color: #a6e3a1;
+      font-family: "D2Coding", "Consolas", monospace;
+      font-size: 9pt;
+      padding: 16px 18px;
+      border-radius: 6px;
+      margin: 12px 0 16px;
+      overflow-x: auto;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    /* ── 그림 ── */
+    .figure {
+      margin: 24px auto;
+      text-align: center;
+    }
+    .figure img {
+      max-width: 100%;
+      border: 1px solid #e0d9f0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(78,52,115,0.15);
+    }
+    .figure-caption {
+      margin-top: 8px;
+      font-size: 9.5pt;
+      color: #555;
+      font-style: italic;
+    }
+
+    /* ── 아키텍처 다이어그램 ── */
+    .arch-diagram {
+      background: #faf8ff;
+      border: 1px solid #d0c7e8;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: "D2Coding", "Consolas", monospace;
+      font-size: 9pt;
+      white-space: pre;
+      line-height: 1.6;
+      margin: 12px 0 16px;
+      overflow-x: auto;
+    }
+
+    /* ── SSE 이벤트 흐름 ── */
+    .sse-flow {
+      background: #1e1e2e;
+      color: #89dceb;
+      font-family: "D2Coding", "Consolas", monospace;
+      font-size: 9pt;
+      padding: 16px 18px;
+      border-radius: 6px;
+      margin: 12px 0 16px;
+      white-space: pre;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    /* ── 인용 ── */
+    .reference-list {
+      font-size: 9.5pt;
+      line-height: 1.7;
+    }
+    .reference-list li { margin-bottom: 8px; }
+
+    /* ── 향후 연구 단계 박스 ── */
+    .phase-box {
+      border: 1px solid #d0c7e8;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      background: #faf8ff;
+    }
+    .phase-box h4 { margin-top: 0; }
+
+    /* ── acknowledgment ── */
+    .ack {
+      font-size: 9.5pt;
+      color: #555;
+      margin-top: 8px;
+    }
+
+    /* ── 페이지 나누기 힌트 ── */
+    @media print {
+      .page { box-shadow: none; margin: 0; padding: 50px 60px; }
+      .page-break { page-break-before: always; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ════════════════════════════════════════
+       제목 & 저자
+  ════════════════════════════════════════ -->
+  <div class="paper-title">
+    Fluento: AI 기반 적응형 영어 회화 학습 시스템<br>설계 및 구현
+  </div>
+  <div class="paper-subtitle">ICT 전분야 캡스톤 디자인 / 학부생 논문</div>
+  <div class="author-block">소민</div>
+  <div class="affiliation">2025년 ~ 2026년 | 작성일: 2026년 5월 12일</div>
+
+  <hr class="divider" />
+
+  <!-- ════════════════════════════════════════
+       초록
+  ════════════════════════════════════════ -->
+  <div class="abstract-box">
+    <div class="label">초록 (Abstract)</div>
+    <p>
+      본 논문은 대규모 언어 모델(LLM)을 활용하여 학습자의 영어 수준을 실시간으로 분석하고, 난이도를 자동으로 조절하는 적응형 영어 회화 학습 시스템 <strong>Fluento</strong>의 설계와 구현을 다룬다. 기존 영어 학습 앱은 정적인 수준 분류와 단방향 콘텐츠 제공 방식에 머물러 학습자의 실력 변화에 즉각적으로 반응하지 못하는 한계가 있다. 본 시스템은 AWS Bedrock의 Claude 3.5 Sonnet 모델을 통해 대화 메시지마다 어휘, 문법, 유창성, 문맥 인식 능력을 분석하고, 규칙 기반 난이도 조절 알고리즘과 결합하여 학습자에게 최적의 대화 경험을 제공한다. Server-Sent Events(SSE)를 이용한 스트리밍 응답, AWS Cognito 기반 인증, Redis를 활용한 점수 캐싱으로 실시간성과 확장성을 동시에 확보하였다. 프론트엔드는 React 19 기반의 직관적 UI로 사용자가 AI 캐릭터와 자연스러운 대화를 나누며 즉각적인 문법 피드백을 받을 수 있도록 설계하였다.
+    </p>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       I. 서론
+  ════════════════════════════════════════ -->
+  <h2>I. 서론</h2>
+
+  <h3>1.1 연구 배경 및 필요성</h3>
+  <p>
+    세계화가 가속화됨에 따라 영어 의사소통 능력에 대한 수요는 지속적으로 증가하고 있다. 그러나 전통적인 영어 교육 방식은 강사 의존적이며, 개인의 수준과 학습 속도를 반영하기 어렵다. 기존 상용 영어 학습 앱들은 사전 정의된 커리큘럼에 따라 콘텐츠를 제공하기 때문에 학습자가 이미 알고 있는 내용을 반복하거나 지나치게 어려운 내용에 노출되는 문제가 발생한다.
+  </p>
+  <p>
+    대면 학습은 시간과 장소의 제약이 있고, 기존 온라인 학습 플랫폼은 단순한 문제 풀이에 그치는 경우가 많다. 최근 GPT, Claude 등 대규모 언어 모델의 등장으로 자연어 처리 기술이 급격히 발전하였고, 이를 영어 회화 교육에 접목하려는 시도가 증가하고 있으나, 대부분의 연구는 단순 챗봇 수준의 대화 제공에 그치며 학습자의 언어 수준을 동적으로 감지하고 난이도를 실시간으로 조절하는 적응형 학습 시스템은 아직 연구 단계에 머물러 있다.
+  </p>
+
+  <h3>1.2 연구 목적</h3>
+  <p>본 연구의 목적은 다음과 같다.</p>
+  <ol>
+    <li>직관적인 사용자 인터페이스(UI)를 통한 편리한 접근성 제공</li>
+    <li>사용자 맞춤형 AI 친구 캐릭터 생성 기능 구현</li>
+    <li>학습자의 메시지를 AI가 분석하여 영어 수준(초급·중급·고급)을 실시간으로 판별</li>
+    <li>판별된 수준에 따라 AI 응답의 어휘 수준·문장 복잡도·문법 구조를 자동으로 조절</li>
+    <li>대화 완료 후 문법 오류 및 뉘앙스 개선점을 제공하는 실시간 피드백 기능 구현</li>
+    <li>보안과 신뢰성을 갖춘 사용자 인증 체계 구축</li>
+  </ol>
+
+  <h3>1.3 논문 구성</h3>
+  <p>
+    본 논문은 2장에서 관련 연구를 검토하고, 3장에서 시스템 아키텍처 및 기술 스택을 설명한다. 4장에서는 프론트엔드 주요 페이지의 기능과 설계를 기술하며, 5장에서는 백엔드 핵심 기능의 구현 방법을 설명한다. 6장에서 보안 및 신뢰성, 7장에서 UI/UX 설계 특징을 다루고, 8장에서 결론 및 향후 연구 방향을 제시한다.
+  </p>
+
+  <!-- ════════════════════════════════════════
+       II. 관련 연구
+  ════════════════════════════════════════ -->
+  <h2>II. 관련 연구</h2>
+
+  <h3>2.1 적응형 학습 시스템 (Adaptive Learning System)</h3>
+  <p>
+    적응형 학습 시스템은 학습자의 반응을 분석하여 학습 경로나 콘텐츠를 동적으로 조정하는 시스템이다. Knewton, Duolingo 등 상용 서비스는 문항 반응 이론(IRT)이나 지식 추적(Knowledge Tracing) 기법을 활용하나, 자유 형식의 회화 데이터를 실시간으로 분석하는 데는 한계가 있다.
+  </p>
+
+  <h3>2.2 LLM 기반 언어 교육</h3>
+  <p>
+    대규모 언어 모델을 언어 교육에 활용한 연구는 최근 급증하고 있다. GPT-4를 활용한 에세이 첨삭 연구, 챗봇 기반 회화 연습 시스템 등이 있으나, 다음과 같은 한계가 있다.
+  </p>
+  <ul>
+    <li>학습자 수준 판별이 입력 전 설문에 의존하며 대화 중 동적 갱신이 없음</li>
+    <li>AI 응답이 학습자 수준에 맞게 자동 조절되지 않음</li>
+    <li>문법·뉘앙스 피드백이 별도 세션으로 분리되어 학습 흐름이 끊김</li>
+  </ul>
+  <p>
+    본 연구는 이러한 한계를 극복하기 위해 수준 판별·난이도 조절·피드백을 단일 대화 흐름 안에서 통합 처리한다.
+  </p>
+
+  <!-- ════════════════════════════════════════
+       III. 시스템 설계
+  ════════════════════════════════════════ -->
+  <h2>III. 시스템 설계</h2>
+
+  <h3>3.1 전체 시스템 아키텍처</h3>
+  <p>
+    Fluento 백엔드는 RESTful API 서버와 SSE 스트리밍 서버를 통합한 단일 Spring Boot 애플리케이션으로 구성된다. 클라이언트는 메시지 전송 후 반환된 스트림 URL로 SSE 연결을 맺어 AI 응답을 실시간으로 수신한다.
+  </p>
+  <div class="sse-flow">클라이언트
+  │
+  ├─ POST /api/v1/chat/rooms/{roomId}/messages   (메시지 전송)
+  │       └─ messageId + streamUrl 반환
+  │
+  └─ GET /api/v1/chat/stream?messageId=...       (SSE 구독)
+          │
+          ├── ai_start          (스트리밍 시작 알림)
+          ├── level_assessment  (수준 판별 결과)
+          ├── level_adjustment  (난이도 변경 알림, 조건부)
+          ├── ai_chunk × N      (AI 응답 텍스트 스트리밍)
+          └── ai_complete       (완료 + 메시지 ID)
+                  └─ [백그라운드] evaluation (문법·뉘앙스 피드백 저장)</div>
+
+  <h3>3.2 기술 스택</h3>
+
+  <h4>프론트엔드</h4>
+  <table>
+    <thead><tr><th>분류</th><th>기술</th><th>버전</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend Framework</td><td>React</td><td>19.2.4</td></tr>
+      <tr><td>Routing</td><td>React Router DOM</td><td>7.13.2</td></tr>
+      <tr><td>Build Tool</td><td>Vite</td><td>8.0.1</td></tr>
+      <tr><td>Module System</td><td>ES Module</td><td>—</td></tr>
+      <tr><td>State Management</td><td>React Hooks</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h4>백엔드</h4>
+  <table>
+    <thead><tr><th>분류</th><th>기술</th><th>버전</th><th>선택 이유</th></tr></thead>
+    <tbody>
+      <tr><td>Language</td><td>Java (JDK)</td><td>17</td><td>안정성, 생태계</td></tr>
+      <tr><td>Framework</td><td>Spring Boot</td><td>4.0.0</td><td>최신 LTS, 반응형 지원</td></tr>
+      <tr><td>Reactive</td><td>Spring WebFlux</td><td>Spring 관리</td><td>비동기 SSE 스트리밍</td></tr>
+      <tr><td>Database</td><td>PostgreSQL</td><td>17</td><td>JSONB 지원, 오픈소스</td></tr>
+      <tr><td>Cache</td><td>Redis</td><td>7</td><td>인메모리 점수 추적</td></tr>
+      <tr><td>ORM</td><td>Spring Data JPA</td><td>Spring 관리</td><td>생산성</td></tr>
+      <tr><td>DB 마이그레이션</td><td>Flyway</td><td>Spring 관리</td><td>스키마 버전 관리</td></tr>
+      <tr><td>인증</td><td>AWS Cognito</td><td>SDK v2 2.30.19</td><td>OAuth 2.0 / JWT</td></tr>
+      <tr><td>AI</td><td>AWS Bedrock (Claude 3.5 Sonnet)</td><td>SDK v2 2.30.19</td><td>고성능 LLM, 스트리밍</td></tr>
+      <tr><td>Build</td><td>Gradle</td><td>9.0.0</td><td>빠른 빌드, 의존성 관리</td></tr>
+      <tr><td>컨테이너</td><td>Docker / Docker Compose</td><td>—</td><td>환경 일관성</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 데이터베이스 스키마</h3>
+  <table>
+    <thead><tr><th>테이블</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td><code>users</code></td><td>사용자 계정 (Cognito Sub 매핑)</td></tr>
+      <tr><td><code>chat_rooms</code></td><td>채팅방 (현재 수준, 캐릭터 정보)</td></tr>
+      <tr><td><code>chat_messages</code></td><td>메시지 (수준, 평가 점수, 피드백 JSONB)</td></tr>
+      <tr><td><code>level_assessments</code></td><td>수준 판별 이력 (신뢰도, 지표)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.4 패키지 구조</h3>
+  <pre><code>com.fluento
+├── config/          # 보안, Redis, Jackson, Swagger 설정
+├── controller/      # REST 및 SSE 컨트롤러
+├── domain/          # JPA 엔티티 및 Repository
+├── dto/             # 요청·응답 DTO
+├── exception/       # 전역 예외 처리
+└── service/
+    ├── BedrockService          # AWS Bedrock API 호출 (동기·비동기)
+    ├── AIResponseService       # SSE 스트림 전체 흐름 통합
+    ├── LevelAssessmentService  # 수준 판별
+    ├── LevelAdjustmentService  # 난이도 조절 (Redis 기반)
+    └── EvaluationService       # 문법·뉘앙스 평가</code></pre>
+
+  <!-- ════════════════════════════════════════
+       IV. 프론트엔드 주요 페이지 기능 및 설계
+  ════════════════════════════════════════ -->
+  <h2>IV. 프론트엔드 주요 페이지 기능 및 설계</h2>
+
+  <!-- 4.1 로그인 -->
+  <h3>4.1 로그인 페이지</h3>
+
+  <h4>목적 및 설계</h4>
+  <p>
+    로그인 페이지는 기존 사용자의 접근을 관리하고, 개인 학습 데이터를 보호하는 첫 번째 보안 관문이다. 사용자는 이메일 주소와 비밀번호를 입력하여 시스템에 접근한다.
+  </p>
+  <p>
+    화면 상단에는 Fluento 로고가 배치되어 브랜드 아이덴티티를 강조한다. 중앙의 하얀색 카드 형태 로그인 영역에는 두 개의 입력 필드가 있다. 첫 번째는 이메일 입력창으로 사용자의 고유 식별자 역할을 하고, 두 번째는 비밀번호 입력창으로 입력한 문자를 보호하기 위해 기본적으로 점(●) 형태로 표시된다.
+  </p>
+
+  <h4>보안 기능</h4>
+  <p>
+    비밀번호 필드의 우측에는 "보기/숨김" 토글 버튼이 위치한다. 이 버튼을 클릭하면 비밀번호를 일시적으로 일반 텍스트로 표시하여 사용자가 입력 오류를 확인할 수 있도록 했다. 로그인 버튼은 보라색(#4E3473)으로 강조되어 주요 행동을 유도하며, 로그인 완료 시 사용자의 이메일 정보가 로컬 저장소에 임시 저장된다.
+  </p>
+
+  <h4>추가 기능</h4>
+  <p>
+    하단에는 "또는 소셜 계정으로 로그인" 옵션이 제공되며, Google과 Apple 계정을 통한 빠른 로그인 기능도 준비되어 있다. 페이지 하단의 링크를 통해 신규 사용자는 회원가입 페이지로, 기존 사용자는 비밀번호 찾기 기능으로 이동할 수 있다.
+  </p>
+
+  <div class="figure">
+    <img src="login.png" alt="로그인 화면" style="max-width:420px;" />
+    <div class="figure-caption">그림 1. 로그인 화면</div>
+  </div>
+
+  <hr class="thin" />
+
+  <!-- 4.2 회원가입 -->
+  <h3>4.2 회원가입 페이지</h3>
+
+  <h4>목적 및 설계</h4>
+  <p>
+    회원가입 페이지는 신규 사용자가 안전하게 계정을 생성하는 과정을 관리한다. 사용자 정보의 정확성과 보안을 동시에 보장하도록 단계적 입력 구조로 구성되어 있다.
+  </p>
+
+  <h4>이메일 인증 시스템</h4>
+  <p>
+    두 번째 단계는 이메일 인증 절차로, 이메일 주소 입력 후 "인증요청" 버튼을 클릭하면 6자리 인증번호를 발송한다. 인증번호 하단에는 유효 시간(03:00)을 표시하여 사용자에게 시간 제약을 명확히 알리며, 이 타이머는 무차별 대입 공격으로부터 계정을 보호한다.
+  </p>
+  <p>
+    세 번째와 네 번째 단계는 비밀번호 설정이다. 두 입력값이 일치하지 않으면 경고 메시지가 표시되어 사용자 실수를 방지한다. 모든 필드가 올바르게 입력되면 "가입하기" 버튼이 활성화되며, 가입 완료 후 자동으로 로그인 페이지로 이동한다.
+  </p>
+
+  <div class="figure">
+    <img src="signin.png" alt="회원가입 화면" style="max-width:420px;" />
+    <div class="figure-caption">그림 2. 회원가입 화면</div>
+  </div>
+
+  <hr class="thin" />
+
+  <!-- 4.3 홈 -->
+  <h3>4.3 홈 페이지</h3>
+
+  <h4>목적 및 설계</h4>
+  <p>
+    홈 페이지는 사용자의 일일 학습 목표를 관리하고 학습 동기를 부여하는 대시보드 역할을 한다. 화면 상단에는 "오늘의 목표에요"라는 제목이 있고, 그 아래 체크박스 형태의 목표 목록이 나열된다. 기본 목표는 "10분간 영어학습 진행하기!", "단어 20개 완벽하게 암기하기!", "오답노트 다시 확인하기!" 등으로 구성된다.
+  </p>
+
+  <h4>목표 추적 기능</h4>
+  <p>
+    각 목표 옆의 체크박스를 클릭하면 해당 항목이 완료된 것으로 표시된다. 완료된 항목은 회색으로 변하고 텍스트에 취소선이 나타나 시각적 피드백을 제공하며, 이는 사용자의 성취감을 높이고 학습 지속력을 강화한다.
+  </p>
+
+  <h4>학습 콘텐츠</h4>
+  <p>
+    페이지 중단부에는 "오늘의 표현 하나 배워보세요" 섹션에 일일 영어 표현과 해석이 제시된다. 우측에는 "동기부여 가득!" 섹션이 배치되어 있으며, 향후 AI가 생성한 격려 메시지나 학습 통계를 추가할 계획이다.
+  </p>
+
+  <div class="figure">
+    <img src="home.png" alt="홈페이지 화면" style="max-width:680px;" />
+    <div class="figure-caption">그림 3. 홈페이지 화면</div>
+  </div>
+
+  <hr class="thin" />
+
+  <!-- 4.4 친구 목록 -->
+  <h3>4.4 친구 목록 페이지</h3>
+
+  <h4>목적 및 설계</h4>
+  <p>
+    친구 목록 페이지는 사용자가 생성한 AI 캐릭터를 관리하고 선택하는 중추 기능이다. 페이지 상단에는 "모든 친구"와 "즐겨찾는 친구" 두 개의 탭 버튼이 있으며, 탭 선택 상태는 버튼의 색상 변화(보라색 강조)로 시각적으로 표시된다. 상단 우측에는 실시간 검색 입력 창이 위치한다.
+  </p>
+
+  <h4>친구 항목 구성</h4>
+  <p>
+    각 친구는 카드 형태로 표시된다. 좌측에는 친구의 프로필 이미지(원형)가 있고, 즐겨찾기 친구인 경우 별(⭐) 아이콘이 표시된다. 프로필 우측에는 친구의 이름과 설명이 나열되며, 항목 우측 끝의 세로 점(⋮) 아이콘을 클릭하면 "즐겨찾기 등록/해제", "친구 삭제" 옵션을 제공한다.
+  </p>
+
+  <h4>모달 창 (상세 정보)</h4>
+  <p>
+    친구 항목을 클릭하면 전체 화면을 덮는 모달 창이 나타난다. 모달 상단에는 친구의 프로필 이미지(200×200px)가 크게 표시되고, 하단에는 해당 친구에 대한 메모를 작성할 수 있는 텍스트 입력 영역이 제공된다.
+  </p>
+
+  <h4>플로팅 버튼</h4>
+  <p>
+    페이지 우측 하단에는 원형의 보라색 플로팅 버튼("+")이 고정되어 있으며, 클릭 시 새로운 AI 친구를 생성하는 커스텀 친구 페이지로 이동한다.
+  </p>
+
+  <div class="figure">
+    <img src="friends.png" alt="친구 목록 페이지와 상세 모달" style="max-width:680px;" />
+    <div class="figure-caption">그림 4. 친구 목록 페이지와 상세 모달</div>
+  </div>
+
+  <hr class="thin" />
+
+  <!-- 4.5 커스텀 친구 -->
+  <h3>4.5 커스텀 친구 추가 페이지</h3>
+
+  <h4>목적 및 설계</h4>
+  <p>
+    커스텀 친구 페이지는 사용자가 자신이 원하는 AI 캐릭터를 직접 생성하는 창작 공간이다. 메인 콘텐츠는 좌우 두 섹션으로 나뉜다. 좌측에는 프로필 이미지 업로드 영역이 있으며, 원형 영역을 클릭하면 파일 탐색기가 열려 이미지를 선택할 수 있다.
+  </p>
+
+  <h4>우측: 정보 입력 섹션</h4>
+  <p>
+    우측 섹션에는 이름, 성별(남성/여성 버튼), 직업(교수·친구·이웃 등), 성격(친절함·엄격함 등), 메모 입력 필드가 배열되어 있다. 이름과 직업이 입력되지 않으면 경고 메시지가 표시되며, 모든 필드가 올바르게 입력되면 친구가 생성되고 자동으로 친구 목록 페이지로 이동한다.
+  </p>
+
+  <div class="figure">
+    <img src="custom.png" alt="커스텀 친구 생성 화면" style="max-width:680px;" />
+    <div class="figure-caption">그림 5. 커스텀 친구 생성 화면</div>
+  </div>
+
+  <hr class="thin" />
+
+  <!-- 4.6 채팅 -->
+  <h3>4.6 채팅 페이지</h3>
+
+  <h4>목적 및 설계</h4>
+  <p>
+    채팅 페이지는 사용자와 AI 캐릭터 간의 영어 대화를 실현하는 핵심 기능이다. 자연스러운 대화 환경과 함께 실시간 문법 교정을 제공하여 학습 효과를 극대화한다.
+  </p>
+
+  <h4>실시간 교정 창</h4>
+  <p>
+    헤더 아래에는 보라색으로 강조된 "실시간 교정 창"이 배치되어 있다. 이 영역은 사용자가 입력한 영어 문장의 문법 오류를 즉시 표시한다.
+  </p>
+  <ul>
+    <li><strong>상단</strong>: "실시간 교정 창" 제목</li>
+    <li><strong>중앙</strong>: 원본 문장 (예: <em>"Today I has a very good day."</em>) → 수정된 문장 (예: <em>"Today I had a very good day."</em>)</li>
+    <li><strong>하단</strong>: 교정 이유 설명 (예: <em>"The past tense of 'have' is 'had'."</em>)</li>
+  </ul>
+  <p>원본 문장은 취소선으로 표시되어 오류임을 시각적으로 표현하고, 수정된 문장은 강조되어 올바른 표현을 명확히 한다.</p>
+
+  <h4>채팅 영역 및 입력</h4>
+  <p>
+    교정 창 아래는 메시지가 누적되는 채팅 영역으로, 항상 최신 메시지가 화면 하단에 보이도록 자동 스크롤된다. 사용자 메시지는 화면 우측에 보라색 말풍선으로, AI 메시지는 화면 좌측에 흰색 말풍선으로 표시된다. 페이지 하단에는 보라색 입력 바와 전송 버튼(화살표 아이콘)이 배치되어 있다.
+  </p>
+
+  <div class="figure">
+    <img src="chat.png" alt="채팅 화면과 실시간 교정 창" style="max-width:680px;" />
+    <div class="figure-caption">그림 6. 채팅 화면과 실시간 교정 창</div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       V. 백엔드 구현
+  ════════════════════════════════════════ -->
+  <h2>V. 백엔드 구현</h2>
+
+  <h3>5.1 AI 수준 판별 (Level Assessment)</h3>
+  <p>
+    사용자가 메시지를 전송할 때마다 <code>LevelAssessmentService</code>가 해당 메시지를 AWS Bedrock의 Claude 3.5 Sonnet 모델에 전달하여 영어 수준을 판별한다. 분석 항목은 어휘(vocabulary), 문법(grammar), 유창성(fluency), 문맥 인식(contextAwareness)의 4가지이며, 각 항목은 <code>beginner / intermediate / advanced</code>로 분류된다.
+  </p>
+  <p>프롬프트 설계는 모델이 JSON 형식으로만 응답하도록 지시하여 파싱 오류를 최소화하였다.</p>
+  <div class="arch-diagram">입력 → 현재 수준 + 최근 대화 이력 + 사용자 메시지
+출력 → { detectedLevel, confidence(0~1), indicators: { vocabulary, grammar, fluency, contextAwareness } }</div>
+
+  <h3>5.2 적응형 난이도 조절 (Adaptive Level Adjustment)</h3>
+  <p>
+    <code>LevelAdjustmentService</code>는 Redis List(<code>fluento:scores:{roomId}</code>)에 저장된 최근 평가 점수를 기반으로 다음 규칙에 따라 난이도를 조절한다.
+  </p>
+  <table>
+    <thead><tr><th>조건</th><th>조치</th></tr></thead>
+    <tbody>
+      <tr><td>연속 3개 메시지 점수 ≥ 90</td><td>수준 상향</td></tr>
+      <tr><td>연속 2개 메시지 점수 ≤ 50</td><td>수준 하향</td></tr>
+      <tr><td>그 외</td><td>현재 수준 유지</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Redis를 사용하여 DB 조회 없이 O(1) 속도로 최근 점수를 조회하고, 수준 변경 시 <code>chat_rooms</code> 테이블의 <code>current_level</code> 컬럼을 갱신한다.
+  </p>
+
+  <h3>5.3 수준별 AI 응답 생성</h3>
+  <p>
+    <code>BedrockService</code>는 현재 학습자 수준에 따라 서로 다른 시스템 프롬프트를 AWS Bedrock에 전달한다.
+  </p>
+  <table>
+    <thead><tr><th>수준</th><th>시스템 프롬프트 특징</th></tr></thead>
+    <tbody>
+      <tr><td>Beginner</td><td>가장 빈번한 1,000~2,000개 어휘, 5~10 단어 단문, 현재 시제만 사용</td></tr>
+      <tr><td>Intermediate</td><td>3,000~5,000개 어휘, 10~20 단어 문장, 다양한 시제, 일반 관용어 포함</td></tr>
+      <tr><td>Advanced</td><td>5,000개 이상 어휘, 복문·가정법·학문적 표현, 문화적 참조 포함</td></tr>
+    </tbody>
+  </table>
+  <p>
+    응답은 AWS SDK의 <code>ConverseStreamRequest</code>를 통해 스트리밍으로 수신하며, <code>Flux&lt;String&gt;</code> 형태로 리액티브 파이프라인에 통합된다.
+  </p>
+
+  <h3>5.4 실시간 SSE 스트리밍</h3>
+  <p>
+    Spring WebFlux의 <code>Flux&lt;ServerSentEvent&lt;&gt;&gt;</code>를 활용하여 비동기 스트리밍을 구현하였다. <code>AIResponseService</code>는 다음 순서로 이벤트를 발행한다.
+  </p>
+  <ol>
+    <li><code>ai_start</code> — 즉시 발행 (사용자 대기 시간 최소화)</li>
+    <li><code>level_assessment</code> — Bedrock 수준 판별 완료 후 발행</li>
+    <li><code>level_adjustment</code> — 난이도 변경이 발생한 경우에만 발행</li>
+    <li><code>ai_chunk</code> × N — Bedrock 스트리밍 응답 청크를 그대로 전달</li>
+    <li><code>ai_complete</code> — 전체 AI 메시지 저장 완료 후 발행</li>
+  </ol>
+  <p>
+    문법·뉘앙스 평가는 <code>ai_complete</code> 발행 이후 별도 스레드(<code>Schedulers.boundedElastic()</code>)에서 비동기 실행되므로 SSE 스트림의 응답 시간에 영향을 주지 않는다.
+  </p>
+
+  <h3>5.5 문법·뉘앙스 피드백 (Evaluation)</h3>
+  <p>
+    <code>EvaluationService</code>는 대화가 완료된 후 사용자 메시지와 AI 응답을 함께 Bedrock에 전달하여 다음 항목을 평가한다.
+  </p>
+  <div class="json-block">{
+  "isCorrect": true,
+  "score": 0~100,
+  "feedback": {
+    "grammarIssues": [{ "type", "issue", "correction", "explanation" }],
+    "nuanceIssues":  [{ "type", "context", "suggestion" }],
+    "positivePoints": ["..."],
+    "overallFeedback": "..."
+  }
+}</div>
+  <p>평가 결과는 <code>chat_messages</code> 테이블의 JSONB 컬럼에 저장되어, 클라이언트가 메시지 조회 시 피드백을 함께 확인할 수 있다.</p>
+
+  <h3>5.6 인증 및 보안</h3>
+  <p>
+    운영 환경에서는 AWS Cognito가 발급한 JWT를 Spring Security OAuth2 Resource Server가 검증한다. 개발 환경(dev 프로필)에서는 <code>DevSecurityConfig</code>가 활성화되어 <code>Authorization: Bearer dev-token</code> 헤더로 인증을 우회할 수 있다. 이를 통해 개발 편의성과 운영 보안을 분리하였다.
+  </p>
+
+  <h3>5.7 API 명세</h3>
+  <p>모든 응답은 통일된 래퍼 포맷을 사용한다.</p>
+  <div class="json-block">{ "success": true,  "data": { ... } }
+{ "success": false, "error": { "code": "CHAT_ROOM_NOT_FOUND", "message": "...", "statusCode": 404 } }</div>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>설명</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/api/v1/health</code></td><td>헬스체크</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/auth/register</code></td><td>회원가입</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/users/me</code></td><td>내 정보 조회</td></tr>
+      <tr><td>PUT</td><td><code>/api/v1/users/profile</code></td><td>프로필 수정</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/chat/rooms</code></td><td>채팅방 목록 조회</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/chat/rooms</code></td><td>채팅방 생성</td></tr>
+      <tr><td>POST</td><td><code>/api/v1/chat/rooms/{roomId}/messages</code></td><td>메시지 전송</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/chat/rooms/{roomId}/messages</code></td><td>메시지 목록 조회</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/chat/stream?messageId=</code></td><td>SSE AI 응답 스트림</td></tr>
+      <tr><td>GET</td><td><code>/api/v1/chat/rooms/{roomId}/level</code></td><td>현재 수준 조회</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ════════════════════════════════════════
+       VI. 보안 및 신뢰성
+  ════════════════════════════════════════ -->
+  <h2>VI. 보안 및 신뢰성</h2>
+
+  <h3>6.1 사용자 인증 체계</h3>
+  <p>본 플랫폼은 사용자 정보 보호와 신뢰 구축을 최우선으로 한다.</p>
+  <p><strong>다단계 인증 절차</strong></p>
+  <ol>
+    <li>회원가입: 이메일 인증번호 검증 (6자리, 3분 유효)</li>
+    <li>로그인: 이메일 + 비밀번호 인증 (JWT 발급)</li>
+    <li>개인 학습 데이터: localStorage를 통한 세션 관리</li>
+  </ol>
+  <p><strong>비밀번호 보안</strong></p>
+  <ul>
+    <li>입력 필드에서 비밀번호 마스킹 (●●●● 표시)</li>
+    <li>사용자 선택에 따른 보이기/숨기기 기능</li>
+    <li>회원가입 시 비밀번호 재확인을 통한 입력 오류 방지</li>
+  </ul>
+
+  <h3>6.2 향후 보안 강화 방안</h3>
+  <ul>
+    <li><strong>학교 인증 시스템 연동</strong>: KUTIS 등 학교 공식 인증 시스템과 연동하여 사용자 신원 자동 확인</li>
+    <li><strong>보안 질문 도입</strong>: 캐릭터 생성 시 보안 질문을 설정하고, 향후 계정 복구 시 본인 인증에 활용</li>
+    <li><strong>개인정보 보호</strong>: 민감한 개인정보는 필요할 때만 표시, 채팅 기록 암호화 저장</li>
+  </ul>
+
+  <!-- ════════════════════════════════════════
+       VII. UI/UX 설계 특징
+  ════════════════════════════════════════ -->
+  <h2>VII. UI/UX 설계 특징</h2>
+
+  <h3>7.1 색상 및 시각 설계</h3>
+  <ul>
+    <li><strong>주색상</strong>: #4E3473 (보라색) — 전문성과 신뢰성을 나타내는 브랜드 색상</li>
+    <li><strong>배경색</strong>: #ffffff (흰색) — 깔끔함과 높은 가독성</li>
+    <li><strong>강조색</strong>: 파란색 및 빨간색 — 경고 및 중요 정보 표시</li>
+    <li><strong>그림자 효과</strong>: 부드러운 보라색 그림자로 깊이감 표현</li>
+    <li><strong>모서리</strong>: 둥근 모서리(8–30px)로 친화적 분위기 조성</li>
+  </ul>
+
+  <h3>7.2 사용성 설계</h3>
+  <ul>
+    <li><strong>직관적 네비게이션</strong>: 사이드바로 모든 주요 페이지에 빠르게 접근</li>
+    <li><strong>조건부 헤더 표시</strong>: 친구 목록과 채팅 페이지에서는 헤더를 숨겨 집중력 강화</li>
+    <li><strong>플로팅 버튼</strong>: 주요 행동(친구 추가)을 항상 접근 가능하게 배치</li>
+    <li><strong>모달 창</strong>: 상세 정보를 현재 페이지 맥락 내에서 확인 가능</li>
+    <li><strong>실시간 피드백</strong>: 검색, 필터링, 입력 값 변화에 즉각 반응</li>
+  </ul>
+
+  <h3>7.3 반응형 디자인</h3>
+  <ul>
+    <li><strong>레이아웃</strong>: Flexbox 기반으로 다양한 화면 크기에 적응</li>
+    <li><strong>접근성</strong>: 키보드 네비게이션 지원 및 스크린 리더 호환성 고려</li>
+  </ul>
+
+  <!-- ════════════════════════════════════════
+       VIII. 결론 및 향후 연구
+  ════════════════════════════════════════ -->
+  <h2>VIII. 결론 및 향후 연구</h2>
+
+  <h3>8.1 기대 효과</h3>
+  <p>본 시스템은 학습자에게 다음과 같은 가치를 제공한다.</p>
+  <ul>
+    <li><strong>학습 효율 향상</strong>: AI가 매 대화마다 수준을 분석하고 응답 난이도를 자동 조절함으로써 학습자는 항상 Vygotsky의 근접 발달 영역(Zone of Proximal Development) 이론에 부합하는 최적 학습 구간에서 대화를 이어갈 수 있다.</li>
+    <li><strong>즉각적인 피드백</strong>: 대화가 끝난 직후 문법 오류·뉘앙스 개선점·긍정 포인트를 구조화된 형태로 제공하므로 학습자는 자신의 실수를 빠르게 인지하고 교정할 수 있다.</li>
+    <li><strong>낮은 심리적 장벽</strong>: AI 캐릭터와의 대화이므로 실수에 대한 두려움 없이 자유롭게 표현할 수 있으며, 언제 어디서나 반복 연습이 가능하다.</li>
+    <li><strong>개인 맞춤형 경험</strong>: 동일한 앱을 사용하더라도 초급자와 고급자가 전혀 다른 수준의 대화를 경험하며, 실력이 향상됨에 따라 시스템이 자동으로 더 높은 수준의 콘텐츠를 제공한다.</li>
+  </ul>
+
+  <h3>8.2 현재 제약사항</h3>
+  <ul>
+    <li>백엔드 API 연동 미완료 (데이터베이스 저장 기능 제한)</li>
+    <li>실제 AI 문법 교정 엔진 미구현 (시뮬레이션 단계)</li>
+    <li>실시간 채팅 웹소켓 연결 미구현</li>
+    <li>Flyway 자동 마이그레이션 이슈 (Spring Boot 4 호환 버전 대응 필요)</li>
+  </ul>
+
+  <h3>8.3 향후 개발 계획</h3>
+
+  <div class="phase-box">
+    <h4>단기 과제</h4>
+    <ul>
+      <li>프론트엔드(iOS/Android) 앱 개발 및 실사용자 테스트</li>
+      <li>AWS S3 기반 이미지 메시지 전송 구현</li>
+      <li>WebSocket을 활용한 양방향 통신 구현</li>
+    </ul>
+  </div>
+
+  <div class="phase-box">
+    <h4>중기 과제</h4>
+    <ul>
+      <li>수준 판별 정확도 평가 지표 수립 및 A/B 테스트 도입</li>
+      <li>학습 이력 분석 대시보드 구현 (주간 점수 추이, 오류 유형 통계)</li>
+      <li>다국어 지원 확장 (일어, 중국어, 스페인어)</li>
+      <li>RAG(Retrieval-Augmented Generation) 기반 학습 콘텐츠 확장</li>
+    </ul>
+  </div>
+
+  <div class="phase-box">
+    <h4>장기 과제</h4>
+    <ul>
+      <li>학습자 행동 데이터를 기반으로 한 파인튜닝 모델 개발</li>
+      <li>음성 입출력(STT/TTS) 통합으로 발음 교정 기능 추가</li>
+      <li>그룹 학습 모드: 다수 학습자 간 AI 퍼실리테이터 역할</li>
+      <li>실시간 수준 판별 모델의 경량화를 통한 온디바이스 추론 연구</li>
+    </ul>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       Acknowledgment
+  ════════════════════════════════════════ -->
+  <hr class="divider" />
+  <h2>ACKNOWLEDGMENTS</h2>
+  <p class="ack">
+    본 연구는 과학기술정보통신부 및 정보통신기획평가원의 SW중심대학지원사업의 연구결과로 수행되었습니다.
+  </p>
+
+  <!-- ════════════════════════════════════════
+       References
+  ════════════════════════════════════════ -->
+  <h2>REFERENCES</h2>
+  <ol class="reference-list">
+    <li>Gan, W., et al. (2024). Adapting Large Language Models for Education: Foundational Capabilities, Potentials, and Challenges. <em>arXiv preprint arXiv:2401.08664</em>.</li>
+    <li>Huang, W., Hew, K. F., &amp; Fryer, L. K. (2022). Chatbots for language learning—Are they really useful? A systematic review of chatbot-supported language learning. <em>Journal of Computer Assisted Learning</em>, 38(1), 237–257.</li>
+    <li>Wang, Z., et al. (2025). Automatic Proficiency Assessment in L2 English Learners. <em>arXiv preprint arXiv:2505.02615</em>.</li>
+    <li>Fang, T., et al. (2024). Evaluating Prompting Strategies for Grammatical Error Correction Based on Language Proficiency. <em>arXiv preprint arXiv:2402.15930</em>.</li>
+    <li>OpenAI. (2023). GPT-4 Technical Report. <em>arXiv preprint arXiv:2303.08774</em>.</li>
+    <li>Anthropic. (2024). <em>Claude 3.5 Sonnet Model Card Addendum</em>. Anthropic.</li>
+    <li>AWS. (2024). <em>Amazon Bedrock Developer Guide</em>. Amazon Web Services.</li>
+    <li>VMware Tanzu. (2024). <em>Spring WebFlux Reference Documentation</em>. Spring Framework.</li>
+    <li>WHATWG. (2024). <em>Server-Sent Events — HTML Living Standard</em>. Web Hypertext Application Technology Working Group.</li>
+    <li>Brown, A., et al. (2023). Interactive Language Learning: The Impact of Real-time Feedback on Student Engagement. <em>Journal of Educational Technology &amp; Society</em>, vol. 24, no. 3, pp. 45–58.</li>
+    <li>Kim, S., &amp; Park, J. (2022). Conversational AI as a Tool for Language Acquisition: A Case Study of Adult Learners. <em>Computer Assisted Language Learning</em>, vol. 35, no. 5, pp. 1–20.</li>
+    <li>React Documentation. https://react.dev</li>
+    <li>React Router Documentation. https://reactrouter.com</li>
+    <li>Vite Documentation. https://vitejs.dev</li>
+  </ol>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+- generic [ref=e1]:
+  - main [ref=e4]:
+    - link "Amazon Web Services logo" [ref=e9] [cursor=pointer]:
+      - /url: https://aws.amazon.com/
+      - img "Amazon Web Services logo" [ref=e10]
+    - generic [ref=e19]:
+      - generic [ref=e22]:
+        - heading "IAM user sign in" [level=2] [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: IAM user sign in
+            - generic [ref=e37]:
+              - img
+        - generic [ref=e40]:
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e46]:
+                - generic [ref=e48]: Account ID or alias
+                - button "(Don't have?)" [ref=e51] [cursor=pointer]:
+                  - generic [ref=e52]: (Don't have?)
+              - textbox "Account ID or alias (Don't have?)" [active] [ref=e57]
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - img [ref=e66]
+                - checkbox "Remember this account" [ref=e68]
+              - generic [ref=e70]: Remember this account
+          - generic [ref=e72]:
+            - generic [ref=e73]: IAM username
+            - textbox "IAM username" [ref=e78]
+          - generic [ref=e79]:
+            - generic [ref=e80]:
+              - generic [ref=e81]: Password
+              - textbox "Password" [ref=e86]
+            - generic [ref=e87]:
+              - generic:
+                - generic [ref=e90]:
+                  - generic [ref=e91]:
+                    - img [ref=e92]
+                    - checkbox "Show Password" [ref=e94]
+                  - generic [ref=e96]: Show Password
+                - button "Having trouble?" [ref=e100] [cursor=pointer]:
+                  - generic [ref=e101]: Having trouble?
+          - button "Sign in" [ref=e103] [cursor=pointer]
+          - button "Sign in using root user email" [ref=e105] [cursor=pointer]
+          - button "Create a new AWS account" [ref=e108]
+      - generic [ref=e110]:
+        - text: By continuing, you agree to
+        - link "AWS Customer Agreement" [ref=e111]:
+          - /url: https://aws.amazon.com/terms
+        - text: or other agreement for AWS services, and the
+        - link "Privacy Notice" [ref=e112]:
+          - /url: https://aws.amazon.com/privacy
+        - text: . This site uses essential cookies. See our
+        - link "Cookie Notice" [ref=e113]:
+          - /url: https://aws.amazon.com/legal/cookies
+        - text: for more information.
+    - generic [ref=e115]: © 2026 Amazon Web Services, Inc. or its affiliates. All rights reserved.
+    - generic [ref=e117]:
+      - button "Provide feedback" [ref=e120] [cursor=pointer]
+      - button "Multi-session disabled" [ref=e127] [cursor=pointer]:
+        - text: Multi-session disabled
+        - generic [ref=e128]:
+          - img
+      - button "Language English" [ref=e135] [cursor=pointer]:
+        - text: English
+        - generic [ref=e136]:
+          - img
+  - alert [ref=e137]

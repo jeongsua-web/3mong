@@ -1,0 +1,31 @@
+- generic [ref=e42]:
+  - banner [ref=e43]:
+    - button "뒤로가기" [ref=e44] [cursor=pointer]:
+      - img [ref=e45]
+    - heading "sarah" [level=2] [ref=e47]
+  - generic [ref=e49]:
+    - generic [ref=e50]: 실시간 교정 창
+    - generic [ref=e51]: 대화를 시작하면 실시간으로 교정해드릴게요!
+  - generic [ref=e52]:
+    - generic [ref=e53]:
+      - generic [ref=e55]:
+        - text: AI
+        - text: 프로필
+      - generic [ref=e56]: Hi! I'm Sarah, your English learning companion. How can I help you today? Let's practice together and improve your English!
+    - generic [ref=e57]:
+      - generic [ref=e59]:
+        - text: AI
+        - text: 프로필
+      - generic [ref=e60]: Nice to meet you! What should we talk about?
+    - generic [ref=e61]:
+      - generic [ref=e63]:
+        - text: AI
+        - text: 프로필
+      - generic [ref=e64]: Hello! Can you introduce yourself?
+  - generic [ref=e65]:
+    - button "파일 첨부" [ref=e66] [cursor=pointer]:
+      - img [ref=e67]
+    - generic [ref=e68]:
+      - textbox "메시지를 입력하세요" [ref=e69]
+      - button "전송" [ref=e70] [cursor=pointer]:
+        - img [ref=e71]

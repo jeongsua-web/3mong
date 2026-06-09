@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Fluento 시스템 아키텍처</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #fff;
+    padding: 40px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    margin-bottom: 50px;
+    font-size: 14px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge {
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 13px;
+  }
+  .badge.orange { background: #f59e0b; }
+
+  /* ── ARCH 1: SSE Pipeline ── */
+  .arch1 {
+    background: #1a1d27;
+    border: 1px solid #2d3047;
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin-bottom: 40px;
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .box {
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 110px;
+    line-height: 1.5;
+  }
+  .box.client   { background: #1e3a5f; border: 2px solid #3b82f6; color: #93c5fd; }
+  .box.server   { background: #1a2e1a; border: 2px solid #22c55e; color: #86efac; }
+  .box.ai       { background: #2e1a3a; border: 2px solid #a855f7; color: #d8b4fe; }
+  .box.db       { background: #2e2a1a; border: 2px solid #f59e0b; color: #fcd34d; }
+  .box.event    { background: #1a2535; border: 2px solid #38bdf8; color: #7dd3fc; font-size: 11px; min-width: 90px; }
+
+  .node-label {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+  }
+
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    padding: 0 6px;
+  }
+  .arrow-line {
+    width: 36px;
+    height: 2px;
+    background: linear-gradient(to right, #444, #666);
+    position: relative;
+  }
+  .arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border: 5px solid transparent;
+    border-left-color: #666;
+  }
+  .arrow-label {
+    font-size: 10px;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  /* SSE Events 흐름 */
+  .events-flow {
+    margin-top: 28px;
+    background: #12141e;
+    border-radius: 12px;
+    padding: 18px 24px;
+  }
+  .events-title {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .events-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .event-chip {
+    background: #1e2a3a;
+    border: 1px solid #38bdf8;
+    color: #7dd3fc;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .event-chip.optional {
+    border-color: #a855f7;
+    color: #d8b4fe;
+    background: #2a1e3a;
+  }
+  .event-chip.green {
+    border-color: #22c55e;
+    color: #86efac;
+    background: #1a2e1a;
+  }
+  .ev-arrow {
+    color: #444;
+    font-size: 16px;
+  }
+
+  /* ── ARCH 2: Level System ── */
+  .arch2 {
+    background: #1a1d27;
+    border: 1px solid #2d3047;
+    border-radius: 16px;
+    padding: 32px 36px;
+  }
+
+  .level-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    gap: 0;
+    align-items: center;
+  }
+
+  .level-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .level-box {
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    width: 100%;
+    max-width: 170px;
+  }
+  .level-box .icon { font-size: 28px; margin-bottom: 8px; }
+  .level-box .name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .level-box .desc { font-size: 11px; opacity: 0.75; line-height: 1.4; }
+
+  .level-box.msg    { background: #1e3a5f; border: 2px solid #3b82f6; }
+  .level-box.redis  { background: #2e1a1a; border: 2px solid #ef4444; }
+  .level-box.rule   { background: #1a2e1a; border: 2px solid #22c55e; }
+  .level-box.result { background: #2e2a1a; border: 2px solid #f59e0b; }
+
+  .level-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .rule-box {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .rule-card {
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .rule-card.up   { background: #1a2e1a; border: 1px solid #22c55e; }
+  .rule-card.down { background: #2e1a1a; border: 1px solid #ef4444; }
+  .rule-icon { font-size: 28px; }
+  .rule-text .rule-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .rule-text .rule-desc  { font-size: 13px; opacity: 0.75; }
+
+  .redis-key {
+    margin-top: 20px;
+    background: #12141e;
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .redis-key code {
+    background: #1e2535;
+    border: 1px solid #38bdf8;
+    color: #7dd3fc;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Fluento 핵심 시스템 아키텍처</h1>
+<p class="subtitle">2개의 핵심 기술 구조</p>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  ARCH 1: SSE 스트리밍 파이프라인           -->
+<!-- ══════════════════════════════════════════ -->
+<div class="arch1">
+  <div class="section-title">
+    <span class="badge">01</span>
+    AI 응답 SSE 스트리밍 파이프라인
+  </div>
+
+  <div class="pipeline">
+
+    <div class="node">
+      <div class="box client">Client<br><span style="font-size:11px;opacity:.7">Mobile / Web</span></div>
+      <div class="node-label">사용자</div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">POST /messages</div>
+    </div>
+
+    <div class="node">
+      <div class="box server">Chat<br>Message<br>Service</div>
+      <div class="node-label">메시지 저장</div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">streamUrl 반환</div>
+    </div>
+
+    <div class="node">
+      <div class="box server">AI Response<br>Service<br><span style="font-size:10px;opacity:.7">비동기 Flux</span></div>
+      <div class="node-label">SSE 흐름 조율</div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">API 호출</div>
+    </div>
+
+    <div class="node">
+      <div class="box ai">OpenAI<br>GPT-4o</div>
+      <div class="node-label">AI 엔진</div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">이벤트 전송</div>
+    </div>
+
+    <div class="node">
+      <div class="box event">SSE<br>Events</div>
+      <div class="node-label">실시간 수신</div>
+    </div>
+
+  </div>
+
+  <!-- 이벤트 흐름 -->
+  <div class="events-flow">
+    <div class="events-title">SSE 이벤트 순서</div>
+    <div class="events-list">
+      <div class="event-chip">ai_start</div>
+      <span class="ev-arrow">→</span>
+      <div class="event-chip">level_assessment</div>
+      <span class="ev-arrow">→</span>
+      <div class="event-chip optional">level_adjustment ?</div>
+      <span class="ev-arrow">→</span>
+      <div class="event-chip">ai_chunk × N</div>
+      <span class="ev-arrow">→</span>
+      <div class="event-chip green">evaluation</div>
+      <span class="ev-arrow">→</span>
+      <div class="event-chip green">ai_complete</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════ -->
+<!--  ARCH 2: 레벨 자동 조절 시스템             -->
+<!-- ══════════════════════════════════════════ -->
+<div class="arch2">
+  <div class="section-title">
+    <span class="badge orange">02</span>
+    레벨 자동 조절 시스템 (Redis)
+  </div>
+
+  <div class="level-grid">
+
+    <div class="level-node">
+      <div class="level-box msg">
+        <div class="icon">💬</div>
+        <div class="name">사용자 메시지</div>
+        <div class="desc">영어 문장 전송</div>
+      </div>
+    </div>
+
+    <div class="level-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">채점</div>
+    </div>
+
+    <div class="level-node">
+      <div class="level-box redis">
+        <div class="icon">⚡</div>
+        <div class="name">Redis</div>
+        <div class="desc">최근 점수 5개<br>빠르게 저장</div>
+      </div>
+    </div>
+
+    <div class="level-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">조건 판단</div>
+    </div>
+
+    <div class="level-node">
+      <div class="level-box rule">
+        <div class="icon">📊</div>
+        <div class="name">조절 로직</div>
+        <div class="desc">연속 점수 패턴<br>분석</div>
+      </div>
+    </div>
+
+    <div class="level-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">레벨 변경</div>
+    </div>
+
+    <div class="level-node">
+      <div class="level-box result">
+        <div class="icon">🎯</div>
+        <div class="name">레벨 업데이트</div>
+        <div class="desc">BEGINNER<br>INTERMEDIATE<br>ADVANCED</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 규칙 카드 -->
+  <div class="rule-box">
+    <div class="rule-card up">
+      <div class="rule-icon">🔼</div>
+      <div class="rule-text">
+        <div class="rule-title" style="color:#86efac">레벨 UP</div>
+        <div class="rule-desc">연속 3회 이상 <strong style="color:#86efac">90점 이상</strong></div>
+      </div>
+    </div>
+    <div class="rule-card down">
+      <div class="rule-icon">🔽</div>
+      <div class="rule-text">
+        <div class="rule-title" style="color:#fca5a5">레벨 DOWN</div>
+        <div class="rule-desc">연속 2회 이상 <strong style="color:#fca5a5">50점 이하</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="redis-key">
+    <span>Redis Key 패턴</span>
+    <code>fluento:scores:{roomId}</code>
+    <span style="margin-left:8px">→ 최근 5개 점수만 유지, 7일 후 자동 만료</span>
+  </div>
+
+</div>
+
+</body>
+</html>
