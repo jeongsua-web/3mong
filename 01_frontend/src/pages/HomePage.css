@@ -1,0 +1,218 @@
+@font-face {
+    font-family: 'nature';
+    src: url('../assets/fonts/환경R.ttf') format('truetype');
+}
+/* 폼 요소들에게 폰트 강제 상속 */
+button, input, select, textarea {
+    font-family: 'nature', sans-serif;
+}
+body {
+    margin: 0;
+}
+.container {
+    display: flex;
+    font-family: monospace;
+}
+/*메인영역*/
+.main {
+    flex: 1;
+    /*사이드바에 안 가리게 : 이거는 사이드바 width랑 맞추면 되용*/
+    margin-left: 200px;
+}
+/*위쪽 회색 부분*/
+.header {
+    background-color: #9e80b6;
+    padding: 20px;
+    height: 4px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.header h1{
+    margin: 0;
+    font-size: 25px;
+    color: #ffffff;
+    
+}
+.divider {
+    border: none;
+    height: 1px;
+    background-color: #ddd;
+    margin-top: 50px;
+    margin-bottom: 0;
+}
+/*아래 흰 영역*/
+.content {
+    padding: 20px;
+    margin-top: 30px;
+}
+/*사이드바*/
+.sidebar {
+    width: 200px;
+    height: 100vh;
+    background-color: #9e80b6;
+    color: white;
+    padding:0px;
+
+    box-sizing: border-box;
+
+    /*왼쪽 고정 핵심*/
+    position: fixed;
+    top: 0;
+    left:0;
+    border-right: 1px solid #ffffff;
+}
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px;
+
+    margin-bottom: 1px;
+}
+.sidebar button {
+    display: block;
+    width:100%;
+    margin-bottom: 10px;
+    padding: 9px;
+
+    background-color: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-family: 'nature', sans-serif;
+}
+.sidebar button.active {
+    background-color: #60408e;
+    border-radius: 5px;
+}
+.sidebar button:hover {
+    background-color: #60408e;
+    border-radius: 5px;
+}
+.settings-text {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    
+    color: white;
+    cursor: pointer;
+}
+.expression-box{
+    width: 500px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 15px;
+
+    margin-left: 0;
+    margin-top: 5px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.expression-box p{
+    margin-bottom: 15px;
+    font-size: 17px;
+}
+.expression-box h2{
+    margin-bottom: 15px;
+}
+
+.start-box {
+    padding: 40px 50px;
+    background-color: #9e80b6;
+    border-radius: 15px;
+    margin-top: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+.start-title {
+    margin: 0;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+.start-btn {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: #9e80b6;
+    border: 3px solid white;
+    border-radius: 12px;
+    padding: 12px 28px;
+    cursor: pointer;
+}
+.wronganswer-item {
+    margin: 0;
+    line-height: 28px;
+    font-size: 15px;
+    font-weight: bold;
+}
+.wronganswer-box {
+    width: 500px;
+    min-height: 150px;
+    padding: 28px 20px 20px 50px;
+    border-radius: 10px;
+
+    margin-left: 0;
+    margin-top: 5px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+
+    background-color: #fffef0;
+    background-image:
+        linear-gradient(#ff9999 1px, transparent 1px),
+        repeating-linear-gradient(
+            transparent,
+            transparent 27px,
+            #c8d8f0 28px
+        );
+    background-size: 100% 100%, 100% 28px;
+    background-position: 35px 0, 0 28px;
+    border-left: 4px solid #ff9999;
+}
+.willpower-box {
+    width: 500px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 15px;
+
+    margin-left: 0;
+    margin-top: 5px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.willpower-box p {
+    font-size: 20px;
+    line-height: 1.6;
+}
+.goal-box {
+    width: 600px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 15px;
+
+    margin-left: 0;
+    margin-top: 0px;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.goal-item {
+    display: block;
+    align-items: left;
+    margin: 8px 0;
+}
+.goal-item input{
+    margin-right: 10px;
+}
+.done {
+    text-decoration: line-through;
+    color: gray;
+}
+h2 {
+      margin-bottom: 5px;
+}

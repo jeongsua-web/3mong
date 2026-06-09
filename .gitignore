@@ -1,0 +1,38 @@
+# ===== OS / Editor =====
+.DS_Store
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.vscode/*
+!.vscode/extensions.json
+
+# ===== Secrets (절대 커밋 금지) =====
+.env
+*.env
+!*.env.example
+application-local.yml
+*.pem
+*.key
+
+# ===== Frontend (01_frontend) =====
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== Backend (02-backend) =====
+.gradle/
+build/
+*.class
+*.log
+logs/
+
+# ===== Tooling junk =====
+.playwright-mcp/
