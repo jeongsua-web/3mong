@@ -15,7 +15,7 @@ import java.time.Duration;
 public class BedrockConfig {
 
     @Bean(destroyMethod = "close")
-    public BedrockRuntimeClient bedrockRuntimeClient(@Value("${aws.region}") String region) {
+    public BedrockRuntimeClient bedrockRuntimeClient(@Value("${aws.bedrock.region}") String region) {
         return BedrockRuntimeClient.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
@@ -27,7 +27,7 @@ public class BedrockConfig {
     }
 
     @Bean(destroyMethod = "close")
-    public BedrockRuntimeAsyncClient bedrockRuntimeAsyncClient(@Value("${aws.region}") String region) {
+    public BedrockRuntimeAsyncClient bedrockRuntimeAsyncClient(@Value("${aws.bedrock.region}") String region) {
         return BedrockRuntimeAsyncClient.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())

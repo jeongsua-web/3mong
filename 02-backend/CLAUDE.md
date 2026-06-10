@@ -37,7 +37,8 @@ lsof -ti:8080 | xargs kill -9
 | `REDIS_PORT` | Redis 포트 | `6379` |
 | `AWS_REGION` | AWS 리전 | `ap-northeast-2` |
 | `AWS_COGNITO_USER_POOL_ID` | Cognito User Pool ID | - |
-| `OPENAI_API_KEY` | OpenAI API Key | - |
+| `BEDROCK_REGION` | Bedrock 리전 (US만 가능) | `us-east-1` |
+| `BEDROCK_MODEL_ID` | Bedrock 모델 ID (cross-region inference profile) | `us.anthropic.claude-3-5-sonnet-20241022-v2:0` |
 
 ## 아키텍처
 
@@ -46,8 +47,9 @@ lsof -ti:8080 | xargs kill -9
 - **PostgreSQL 18** (로컬) + Flyway 마이그레이션
 - **Redis** (레벨 점수 캐싱, 추후 세션)
 - **AWS Cognito** JWT 인증 (운영), dev 프로필에서 우회
-- **OpenAI GPT-4o** 스트리밍 응답
+- **AWS Bedrock** Claude 3.5 Sonnet 스트리밍 응답 (`BedrockService`)
 - **SSE (Server-Sent Events)** 실시간 AI 응답 스트림
+- dev 프로필: `MockEvaluator`로 Bedrock 없이 평가 로직 테스트 가능
 
 ### 패키지 구조
 
@@ -72,10 +74,11 @@ com.fluento
 │   ├── UserService               # 유저 조회/생성/수정
 │   ├── ChatRoomService           # 채팅방 CRUD
 │   ├── ChatMessageService        # 메시지 저장/조회
-│   ├── OpenAIService             # GPT-4o 스트리밍 + 프롬프트 생성
-│   ├── LevelAssessmentService    # 사용자 영어 수준 판단 (OpenAI 호출)
+│   ├── BedrockService            # Claude 스트리밍 + 프롬프트 생성 (AIService 구현체)
+│   ├── MockEvaluator             # dev 프로필용 가짜 평가기 (Bedrock 없이 테스트)
+│   ├── LevelAssessmentService    # 사용자 영어 수준 판단 (Bedrock 호출)
 │   ├── LevelAdjustmentService    # 난이도 조절 규칙 (Redis 점수 추적)
-│   ├── EvaluationService         # 문법/뉘앙스 평가 (OpenAI 호출)
+│   ├── EvaluationService         # 문법/뉘앙스 평가 (Bedrock 호출)
 │   └── AIResponseService         # SSE 전체 흐름 통합
 └── controller/
     ├── HealthController          # GET /api/v1/health (공개)
@@ -114,6 +117,12 @@ Flyway가 Spring Boot 4에서 자동 실행 안 되는 이슈 있어 첫 실행 
 ```bash
 psql -d fluento -f src/main/resources/db/migration/V1__Initial_schema.sql
 ```
+
+### AWS 인증 구조
+- **Access Key 발급 불가** — IAM Role만 사용 가능
+- **EC2**: 인스턴스 프로필 `SafeInstanceProfile-sgu-mong` 자동 인증
+- **로컬**: IAM Role 사용 불가 → Bedrock 직접 호출 불가 → `dev` 프로필 + `MockEvaluator`로 테스트
+- **Bedrock 리전**: 서울(`ap-northeast-2`) 미지원 → `us-east-1` 사용, 모델 ID는 `us.`로 시작하는 cross-region inference profile 사용
 
 ## 알려진 이슈 / 미구현
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getChatRoom, getMessages, sendMessage, getStreamUrl } from '../api/chat';
-import { LEARNED_WORDS } from '../constants/storage';
+import { LEARNED_WORDS, DAILY_CHAT_SECONDS_PREFIX, DAILY_LEARNED_WORDS_PREFIX } from '../constants/storage';
 
 const AVATAR_COLORS = ['#6366F1', '#0891B2', '#059669', '#B45309', '#BE185D', '#7C3AED'];
 const avatarColor = (name) => AVATAR_COLORS[(name || '?').charCodeAt(0) % AVATAR_COLORS.length];
@@ -28,6 +28,17 @@ const ChatPage = () => {
       .catch(err => console.error(err));
     return () => sseRef.current?.close();
   }, [roomId]);
+
+  useEffect(() => {
+    const d = new Date();
+    const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const chatKey = `${DAILY_CHAT_SECONDS_PREFIX}${dateKey}`;
+    const timer = setInterval(() => {
+      const prev = parseInt(localStorage.getItem(chatKey) || '0', 10);
+      localStorage.setItem(chatKey, String(prev + 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
@@ -61,6 +72,11 @@ const ChatPage = () => {
     if (wordCount > 0) {
       const prev = parseInt(localStorage.getItem(LEARNED_WORDS) || '0', 10);
       localStorage.setItem(LEARNED_WORDS, String(prev + wordCount));
+      const d = new Date();
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dailyKey = `${DAILY_LEARNED_WORDS_PREFIX}${dateKey}`;
+      const dailyPrev = parseInt(localStorage.getItem(dailyKey) || '0', 10);
+      localStorage.setItem(dailyKey, String(dailyPrev + wordCount));
     }
     const msg = { id: Date.now(), sender: 'user', text: inputText, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setMessages(prev => [...prev, msg]);

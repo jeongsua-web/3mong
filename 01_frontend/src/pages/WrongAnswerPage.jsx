@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronDown } from 'lucide-react';
 import { getWrongAnswers, deleteWrongAnswer } from '../api/wrongAnswer';
+import { WRONG_ANSWER_REVIEW_DATE } from '../constants/storage';
 
 const WrongAnswerPage = () => {
   const [notes, setNotes] = useState([]);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const d = new Date();
+    const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    localStorage.setItem(WRONG_ANSWER_REVIEW_DATE, dateKey);
+  }, []);
 
   useEffect(() => {
     setError(false);

@@ -1,29 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, BookOpen, MessageSquare, ArrowRight, CheckSquare } from 'lucide-react';
-import { LEARNED_WORDS, DAILY_GOALS_PREFIX } from '../constants/storage';
+import { DAILY_CHAT_SECONDS_PREFIX, DAILY_LEARNED_WORDS_PREFIX, WRONG_ANSWER_REVIEW_DATE } from '../constants/storage';
 import { getChatRooms } from '../api/chat';
 import { getWrongAnswers } from '../api/wrongAnswer';
 
-const DEFAULT_GOALS = [
-  '10분간 영어학습 진행하기',
-  '단어 20개 완벽하게 암기하기',
-  '오답노트 다시 확인하기',
-];
-
-const todayKey = () => {
+const todayDateKey = () => {
   const d = new Date();
-  return `${DAILY_GOALS_PREFIX}${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
 const loadGoals = () => {
-  try {
-    const saved = JSON.parse(localStorage.getItem(todayKey()));
-    if (Array.isArray(saved) && saved.length === DEFAULT_GOALS.length) {
-      return DEFAULT_GOALS.map((text, i) => ({ text, done: saved[i] }));
-    }
-  } catch { /* empty */ }
-  return DEFAULT_GOALS.map(text => ({ text, done: false }));
+  const dk = todayDateKey();
+  const chatSeconds = parseInt(localStorage.getItem(`${DAILY_CHAT_SECONDS_PREFIX}${dk}`) || '0', 10);
+  const dailyWords = parseInt(localStorage.getItem(`${DAILY_LEARNED_WORDS_PREFIX}${dk}`) || '0', 10);
+  const reviewDate = localStorage.getItem(WRONG_ANSWER_REVIEW_DATE);
+  return [
+    { text: '10분간 영어학습 진행하기', done: chatSeconds >= 600 },
+    { text: '단어 20개 완벽하게 암기하기', done: dailyWords >= 20 },
+    { text: '오답노트 다시 확인하기', done: reviewDate === dk },
+  ];
 };
 
 const EXPRESSIONS = [
@@ -148,14 +144,13 @@ const HomePage = () => {
       .catch(() => setWrongAnswerCount(0));
   }, []);
 
-  const learnedWords = parseInt(localStorage.getItem(LEARNED_WORDS) || '0', 10);
   const [goals, setGoals] = useState(loadGoals);
 
-  const toggleGoal = (i) => setGoals(prev => {
-    const next = prev.map((g, idx) => idx === i ? { ...g, done: !g.done } : g);
-    localStorage.setItem(todayKey(), JSON.stringify(next.map(g => g.done)));
-    return next;
-  });
+  useEffect(() => {
+    const timer = setInterval(() => setGoals(loadGoals()), 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const done = goals.filter(g => g.done).length;
 
   return (
@@ -164,7 +159,7 @@ const HomePage = () => {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
         <StatCard icon={Flame} label="학습 연속" value={streakDays === null ? '…' : String(streakDays)} unit="일" />
-        <StatCard icon={BookOpen} label="학습한 단어" value={String(learnedWords)} unit="개" />
+        <StatCard icon={BookOpen} label="학습한 단어" value={String(parseInt(localStorage.getItem('learnedWords') || '0', 10))} unit="개" />
         <StatCard icon={MessageSquare} label="대화 횟수" value={chatCount === null ? '…' : String(chatCount)} unit="회" />
       </div>
 
@@ -181,8 +176,7 @@ const HomePage = () => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {goals.map((g, i) => (
-              <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '7px 8px', borderRadius: 8, background: g.done ? 'var(--surface2)' : 'transparent' }}>
-                <input type="checkbox" checked={g.done} onChange={() => toggleGoal(i)} style={{ display: 'none' }} />
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px', borderRadius: 8, background: g.done ? 'var(--surface2)' : 'transparent' }}>
                 <div style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, border: `1.5px solid ${g.done ? 'var(--accent)' : 'var(--border2)'}`, background: g.done ? 'var(--accent)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {g.done && (
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
@@ -191,7 +185,7 @@ const HomePage = () => {
                   )}
                 </div>
                 <span style={{ fontSize: 13, color: g.done ? 'var(--t3)' : 'var(--t1)', textDecoration: g.done ? 'line-through' : 'none' }}>{g.text}</span>
-              </label>
+              </div>
             ))}
           </div>
         </div>

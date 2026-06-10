@@ -4,3 +4,6 @@ export const USER_NAME = 'userName';
 export const WRONG_ANSWER_NOTES = 'wrongAnswerNotes';
 export const LEARNED_WORDS = 'learnedWords';
 export const DAILY_GOALS_PREFIX = 'dailyGoals_';
+export const DAILY_CHAT_SECONDS_PREFIX = 'dailyChatSeconds_';
+export const DAILY_LEARNED_WORDS_PREFIX = 'dailyLearnedWords_';
+export const WRONG_ANSWER_REVIEW_DATE = 'wrongAnswerReviewDate';
