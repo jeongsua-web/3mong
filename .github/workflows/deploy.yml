@@ -22,5 +22,6 @@ jobs:
             cd ~/fluento
             git pull origin main
             cd 02-backend
-            docker compose down
+            docker compose down --remove-orphans
+            docker rm -f fluento-redis fluento-postgres fluento-app 2>/dev/null || true
             docker compose up -d --build
