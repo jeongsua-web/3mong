@@ -61,7 +61,9 @@ services:
       AWS_REGION: ${AWS_REGION:-ap-northeast-2}
       AWS_COGNITO_USER_POOL_ID: ${AWS_COGNITO_USER_POOL_ID}
       AWS_COGNITO_CLIENT_ID: ${AWS_COGNITO_CLIENT_ID}
-      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-anthropic.claude-3-5-sonnet-20241022-v2:0}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      BEDROCK_REGION: ${BEDROCK_REGION:-us-east-1}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-us.anthropic.claude-3-5-sonnet-20241022-v2:0}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-default}
     depends_on:
       postgres:
