@@ -52,7 +52,7 @@ cp .env.example .env
 | `REDIS_PORT` | Redis 포트 | `6379` |
 | `AWS_REGION` | AWS 리전 | `ap-northeast-2` |
 | `AWS_COGNITO_USER_POOL_ID` | Cognito User Pool ID | - |
-| `BEDROCK_MODEL_ID` | Bedrock 모델 ID | `anthropic.claude-3-5-sonnet-20241022-v2:0` |
+| `BEDROCK_MODEL_ID` | Bedrock 모델 ID | `us.anthropic.claude-sonnet-4-6` |
 
 ### 빌드 및 실행
 

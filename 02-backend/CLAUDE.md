@@ -38,7 +38,7 @@ lsof -ti:8080 | xargs kill -9
 | `AWS_REGION` | AWS 리전 | `ap-northeast-2` |
 | `AWS_COGNITO_USER_POOL_ID` | Cognito User Pool ID | - |
 | `BEDROCK_REGION` | Bedrock 리전 (US만 가능) | `us-east-1` |
-| `BEDROCK_MODEL_ID` | Bedrock 모델 ID (cross-region inference profile) | `us.anthropic.claude-3-5-sonnet-20241022-v2:0` |
+| `BEDROCK_MODEL_ID` | Bedrock 모델 ID (cross-region inference profile) | `us.anthropic.claude-sonnet-4-6` |
 
 ## 아키텍처
 

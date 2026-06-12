@@ -94,7 +94,7 @@ aws:
     client-id: ${AWS_COGNITO_CLIENT_ID:}
   bedrock:
     region: ${BEDROCK_REGION:us-east-1}
-    model-id: ${BEDROCK_MODEL_ID:us.anthropic.claude-3-5-sonnet-20241022-v2:0}
+    model-id: ${BEDROCK_MODEL_ID:us.anthropic.claude-sonnet-4-6}
     stream:
       max-tokens: ${BEDROCK_STREAM_MAX_TOKENS:500}
       temperature: ${BEDROCK_STREAM_TEMPERATURE:0.8}
