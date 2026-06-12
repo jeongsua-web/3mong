@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LevelAssessmentService {
 
-    private final BedrockService bedrockService;
+    private final OpenAIService openAIService;
     private final LevelAssessmentRepository levelAssessmentRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -32,11 +32,11 @@ public class LevelAssessmentService {
     public LevelAssessmentDTO assessUserMessage(
             String content, Level currentLevel, List<String> recentMessages) {
         try {
-            String userContent = bedrockService.buildAssessmentUserContent(
+            String userContent = openAIService.buildAssessmentUserContent(
                     content, currentLevel.name().toLowerCase(), recentMessages);
-            String response = bedrockService.callSync(BedrockService.ASSESSMENT_SYSTEM_INSTRUCTIONS, userContent);
+            String response = openAIService.callSync(OpenAIService.ASSESSMENT_SYSTEM_INSTRUCTIONS, userContent);
 
-            String json = bedrockService.extractJson(response);
+            String json = openAIService.extractJson(response);
             @SuppressWarnings("unchecked")
             Map<String, Object> result = objectMapper.readValue(json, Map.class);
 

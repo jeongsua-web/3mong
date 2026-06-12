@@ -92,15 +92,16 @@ aws:
   cognito:
     user-pool-id: ${AWS_COGNITO_USER_POOL_ID:}
     client-id: ${AWS_COGNITO_CLIENT_ID:}
-  bedrock:
-    region: ${BEDROCK_REGION:us-east-1}
-    model-id: ${BEDROCK_MODEL_ID:us.anthropic.claude-sonnet-4-6}
-    stream:
-      max-tokens: ${BEDROCK_STREAM_MAX_TOKENS:500}
-      temperature: ${BEDROCK_STREAM_TEMPERATURE:0.8}
-    sync:
-      max-tokens: ${BEDROCK_SYNC_MAX_TOKENS:800}
-      temperature: ${BEDROCK_SYNC_TEMPERATURE:0.3}
+
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_MODEL:gpt-4o-mini}
+  stream:
+    max-tokens: ${OPENAI_STREAM_MAX_TOKENS:500}
+    temperature: ${OPENAI_STREAM_TEMPERATURE:0.8}
+  sync:
+    max-tokens: ${OPENAI_SYNC_MAX_TOKENS:800}
+    temperature: ${OPENAI_SYNC_TEMPERATURE:0.3}
 
 logging:
   level:

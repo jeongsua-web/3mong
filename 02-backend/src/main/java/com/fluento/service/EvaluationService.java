@@ -13,16 +13,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EvaluationService implements Evaluator {
 
-    private final BedrockService bedrockService;
+    private final OpenAIService openAIService;
     private final ObjectMapper objectMapper;
 
     @Override
     public EvaluationDTO evaluateUserMessage(String userMessage, String aiResponse) {
         try {
-            String userContent = bedrockService.buildEvaluationUserContent(userMessage, aiResponse);
-            String response = bedrockService.callSync(BedrockService.EVALUATION_SYSTEM_INSTRUCTIONS, userContent);
+            String userContent = openAIService.buildEvaluationUserContent(userMessage, aiResponse);
+            String response = openAIService.callSync(OpenAIService.EVALUATION_SYSTEM_INSTRUCTIONS, userContent);
 
-            String json = bedrockService.extractJson(response);
+            String json = openAIService.extractJson(response);
             @SuppressWarnings("unchecked")
             Map<String, Object> result = objectMapper.readValue(json, Map.class);
 

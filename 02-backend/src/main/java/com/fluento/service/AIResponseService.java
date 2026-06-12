@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AIResponseService {
 
-    private final AIService bedrockService;
+    private final AIService aiService;
     private final LevelAssessmentService levelAssessmentService;
     private final LevelAdjustmentService levelAdjustmentService;
     private final Evaluator evaluationService;
@@ -77,7 +77,7 @@ public class AIResponseService {
                     // 응답 완성 후 결정되며 다음 턴부터 적용된다.
                     Level responseLevel = room.getCurrentLevel();
 
-                    Flux<ServerSentEvent<Map<String, Object>>> aiChunks = bedrockService
+                    Flux<ServerSentEvent<Map<String, Object>>> aiChunks = aiService
                             .generateAIResponse(userMessage.getContent(), responseLevel)
                             .doOnNext(aiContentBuffer::append)
                             .map(chunk -> sse("ai_chunk", Map.of("content", chunk)));

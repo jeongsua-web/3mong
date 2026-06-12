@@ -52,11 +52,10 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-    // AWS SDK v2 (Cognito + Bedrock)
+    // AWS SDK v2 (Cognito)
     implementation platform('software.amazon.awssdk:bom:2.30.19')
     implementation 'software.amazon.awssdk:cognitoidentityprovider'
     implementation 'software.amazon.awssdk:sts'
-    implementation 'software.amazon.awssdk:bedrockruntime'
 
     // Sentry - Spring Boot 4.x 호환 버전 출시 후 Phase 6에서 추가 예정
     // implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.5.0'
