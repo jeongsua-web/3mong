@@ -8,6 +8,7 @@ import com.fluento.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +44,10 @@ public class AuthService {
     public LoginResponse googleLogin(String credential) {
         Map<String, String> tokenInfo;
         try {
-            tokenInfo = RestClient.create()
+            // Alpine(musl) 컨테이너에서 reactor-netty TLS 초기화가 실패하므로 JDK HttpClient 강제
+            tokenInfo = RestClient.builder()
+                    .requestFactory(new JdkClientHttpRequestFactory())
+                    .build()
                     .get()
                     .uri("https://oauth2.googleapis.com/tokeninfo?id_token=" + credential)
                     .retrieve()
