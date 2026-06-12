@@ -22,10 +22,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            String token = null;
             String header = request.getHeader("Authorization");
             if (header != null && header.startsWith("Bearer ")) {
+                token = header.substring(7);
+            } else {
+                // SSE: EventSource cannot set headers, so token arrives as ?access_token=
+                String param = request.getParameter("access_token");
+                if (param != null && !param.isBlank()) {
+                    token = param;
+                }
+            }
+            if (token != null) {
                 try {
-                    Long userId = jwtTokenProvider.getUserId(header.substring(7));
+                    Long userId = jwtTokenProvider.getUserId(token);
                     SecurityContextHolder.getContext().setAuthentication(
                             new UsernamePasswordAuthenticationToken(userId, null, List.of())
                     );
