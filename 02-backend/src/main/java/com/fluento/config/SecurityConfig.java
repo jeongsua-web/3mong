@@ -59,7 +59,8 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://3.35.22.100",
-                "http://3.35.22.100:3000"
+                "http://3.35.22.100:3000",
+                "https://fluento-flax.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
