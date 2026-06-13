@@ -83,6 +83,7 @@ public class OpenAIService implements AIService {
                 "overallFeedback": "..."
               }
             }
+            All text values in the JSON (issue, correction, explanation, context, suggestion, positivePoints, overallFeedback) MUST be written in Korean.
             """;
 
     private static final Map<Level, String> SYSTEM_PROMPTS = Map.of(
