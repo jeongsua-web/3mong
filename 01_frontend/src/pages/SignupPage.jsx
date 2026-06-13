@@ -39,7 +39,7 @@ const SignupPage = () => {
 
         {/* Logo */}
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 44, height: 44, background: 'var(--accent)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: 20, marginBottom: 12 }}>F</div>
+          <img src="/logo.PNG" alt="Fluento 로고" style={{ height: '160px', objectFit: 'contain', marginBottom: 0 }} />
           <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t1)', letterSpacing: '-0.3px', marginBottom: 4 }}>Fluento</h1>
           <p style={{ fontSize: 13, color: 'var(--t3)' }}>AI 친구와 함께 영어를 배워보세요</p>
         </div>

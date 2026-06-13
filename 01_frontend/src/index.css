@@ -113,7 +113,7 @@ a { text-decoration: none; }
   height: var(--header-h);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 6px;
   flex-shrink: 0;
 }
 

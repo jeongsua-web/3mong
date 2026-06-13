@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
     <aside className="sidebar">
       {isOpen ? (
         <div className="sidebar-logo" onClick={() => navigate('/home')}>
-          <div className="sidebar-logo-mark">F</div>
+          <img src="/logo.PNG" alt="Fluento 로고" style={{ height: '64px', objectFit: 'contain' }} />
           <span className="sidebar-logo-text">Fluento</span>
           <button
             className="sidebar-toggle-btn"

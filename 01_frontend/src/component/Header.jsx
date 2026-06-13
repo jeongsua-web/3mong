@@ -50,7 +50,7 @@ const Header = () => {
           <BackIcon />
         </button>
       )}
-      <img src="/logo.PNG" alt="Fluento 로고" style={{ height: '32px', objectFit: 'contain' }} />
+      <img src="/logo.PNG" alt="Fluento 로고" style={{ height: '80px', objectFit: 'contain' }} />
       <h1>{title}</h1>
     </div>
   );
