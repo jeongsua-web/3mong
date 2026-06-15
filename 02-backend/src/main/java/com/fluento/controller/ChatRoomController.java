@@ -25,9 +25,7 @@ public class ChatRoomController {
     public ResponseEntity<ApiResponse<ChatRoomResponse>> createRoom(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CreateChatRoomRequest request) {
-        // characterName은 향후 캐릭터 서비스에서 조회; 현재는 characterId로 대체
-        String characterName = request.characterId();
-        ChatRoom room = chatRoomService.createChatRoom(userId, request.characterId(), characterName, request.title());
+        ChatRoom room = chatRoomService.createChatRoom(userId, request.characterId(), request.characterName(), request.title());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(ChatRoomResponse.from(room)));
     }

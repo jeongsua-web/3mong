@@ -10,8 +10,8 @@ export const getChatRoom = (roomId) =>
   client.get(`/chat/rooms/${roomId}`);
 
 // 채팅방 생성
-export const createChatRoom = (characterId, title) =>
-  client.post('/chat/rooms', { characterId, title });
+export const createChatRoom = (characterId, characterName, title) =>
+  client.post('/chat/rooms', { characterId, characterName, title });
 
 // 채팅방 삭제
 export const deleteChatRoom = (roomId) =>

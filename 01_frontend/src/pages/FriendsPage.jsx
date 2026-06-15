@@ -48,7 +48,7 @@ const FriendsPage = () => {
   };
 
   const handleStartChat = (f) => {
-    createChatRoom(f.id, `${f.name}와 대화`)
+    createChatRoom(f.id, f.name, `${f.name}와 대화`)
       .then(res => navigate(`/chat/${res.data.data.id}`))
       .catch(() => alert('채팅방 생성에 실패했습니다.'));
   };
