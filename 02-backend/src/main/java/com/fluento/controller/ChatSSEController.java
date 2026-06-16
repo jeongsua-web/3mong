@@ -35,7 +35,7 @@ public class ChatSSEController {
             @PathVariable String roomId,
             @RequestParam String messageId) {
         chatRoomService.getChatRoomById(roomId, userId); // 소유권 확인
-        return aiResponseService.generateAndStreamResponse(roomId, messageId);
+        return aiResponseService.generateAndStreamResponse(roomId, messageId, userId);
     }
 
     /**

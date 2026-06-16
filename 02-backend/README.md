@@ -16,8 +16,8 @@
 | Cache | Redis | 7 |
 | ORM | Spring Data JPA / Hibernate | Spring Boot 관리 |
 | DB Migration | Flyway | Spring Boot 관리 |
-| Auth | AWS Cognito (JWT / OAuth2 Resource Server) | AWS SDK v2 2.30.19 |
-| AI | AWS Bedrock (Claude 3.5 Sonnet) | AWS SDK v2 2.30.19 |
+| Auth | 자체 JWT (jjwt) + Google 로그인(GSI id_token 검증) | - |
+| AI | OpenAI API (gpt-4o-mini, 스트리밍) | JDK HttpClient |
 | API Docs | springdoc-openapi (Swagger UI) | 2.8.5 |
 | JWT | jjwt | 0.12.6 |
 | Reactive | Spring WebFlux (SSE 스트리밍용) | Spring Boot 관리 |
@@ -50,9 +50,10 @@ cp .env.example .env
 | `DB_PASSWORD` | DB 비밀번호 | `1234` |
 | `REDIS_HOST` | Redis 호스트 | `localhost` |
 | `REDIS_PORT` | Redis 포트 | `6379` |
-| `AWS_REGION` | AWS 리전 | `ap-northeast-2` |
-| `AWS_COGNITO_USER_POOL_ID` | Cognito User Pool ID | - |
-| `BEDROCK_MODEL_ID` | Bedrock 모델 ID | `us.anthropic.claude-sonnet-4-6` |
+| `APP_JWT_SECRET` | 자체 JWT 서명 시크릿 (HMAC-SHA256, 최소 32바이트) | - |
+| `GOOGLE_CLIENT_ID` | Google 로그인 OAuth 클라이언트 ID | (application.yml 기본값) |
+| `OPENAI_API_KEY` | OpenAI API 키 | - |
+| `OPENAI_MODEL` | OpenAI 모델 ID | `gpt-4o-mini` |
 
 ### 빌드 및 실행
 
@@ -60,7 +61,7 @@ cp .env.example .env
 # dev 프로필 (JWT 인증 우회)
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 
-# 운영 프로필 (Cognito JWT 인증 활성화)
+# 운영 프로필 (자체 JWT 인증 활성화)
 ./gradlew bootRun
 
 # 빌드 (테스트 제외)

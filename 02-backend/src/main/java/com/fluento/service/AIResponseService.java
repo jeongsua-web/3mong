@@ -28,13 +28,21 @@ public class AIResponseService {
     private final ChatMessageService chatMessageService;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final CharacterService characterService;
 
     public Flux<ServerSentEvent<Map<String, Object>>> generateAndStreamResponse(
-            String roomId, String userMessageId) {
+            String roomId, String userMessageId, Long userId) {
 
         return Flux.defer(() -> {
             ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow();
             ChatMessage userMessage = chatMessageRepository.findById(userMessageId).orElseThrow();
+
+            String persona = characterService.describePersona(userId, room.getCharacterId());
+
+            // AI 오프닝 요청(placeholder가 AI 메시지): 평가 없이 AI가 토픽을 제시하며 대화 시작
+            if (userMessage.getSenderType() == SenderType.AI) {
+                return streamOpening(room, userMessage, persona);
+            }
 
             List<String> history = chatMessageRepository
                     .findByRoomId(roomId, org.springframework.data.domain.PageRequest.of(0, 5,
@@ -43,12 +51,50 @@ public class AIResponseService {
                     .map(ChatMessage::getContent)
                     .toList();
 
-            return streamFullResponse(room, userMessage, history);
+            return streamFullResponse(room, userMessage, history, persona);
         }).subscribeOn(Schedulers.boundedElastic());
     }
 
+    /**
+     * AI가 먼저 대화를 시작하는 오프닝 스트림.
+     * 사용자 메시지가 없으므로 레벨 평가/난이도 조절 없이 인사+토픽만 스트리밍하고
+     * placeholder 메시지에 내용을 채워 저장한다.
+     */
+    private Flux<ServerSentEvent<Map<String, Object>>> streamOpening(
+            ChatRoom room, ChatMessage placeholder, String persona) {
+        StringBuilder buffer = new StringBuilder();
+
+        Flux<ServerSentEvent<Map<String, Object>>> startEvent = Flux.just(
+                sse("ai_start", Map.of("timestamp", Instant.now().toString())));
+
+        Flux<ServerSentEvent<Map<String, Object>>> aiChunks = aiService
+                .generateOpeningMessage(room.getCurrentLevel(), persona)
+                .doOnNext(buffer::append)
+                .map(chunk -> sse("ai_chunk", Map.of("content", chunk)));
+
+        Flux<ServerSentEvent<Map<String, Object>>> completionEvent = Flux.defer(() -> {
+            String content = buffer.toString();
+            ChatMessage fresh = chatMessageRepository.findById(placeholder.getId()).orElseThrow();
+            fresh.updateContent(content);
+            chatMessageService.saveMessage(fresh);
+
+            return Flux.just(sse("ai_complete", Map.of(
+                    "messageId", placeholder.getId(),
+                    "totalContent", content,
+                    "timestamp", Instant.now().toString())));
+        });
+
+        return Flux.concat(startEvent, aiChunks, completionEvent)
+                .onErrorResume(e -> {
+                    log.error("SSE opening stream error: {}", e.getMessage());
+                    return Flux.just(sse("error", Map.of(
+                            "code", "AI_API_ERROR",
+                            "message", "AI response failed")));
+                });
+    }
+
     private Flux<ServerSentEvent<Map<String, Object>>> streamFullResponse(
-            ChatRoom room, ChatMessage userMessage, List<String> history) {
+            ChatRoom room, ChatMessage userMessage, List<String> history, String persona) {
 
         StringBuilder aiContentBuffer = new StringBuilder();
 
@@ -78,7 +124,7 @@ public class AIResponseService {
                     Level responseLevel = room.getCurrentLevel();
 
                     Flux<ServerSentEvent<Map<String, Object>>> aiChunks = aiService
-                            .generateAIResponse(userMessage.getContent(), responseLevel)
+                            .generateAIResponse(userMessage.getContent(), responseLevel, persona)
                             .doOnNext(aiContentBuffer::append)
                             .map(chunk -> sse("ai_chunk", Map.of("content", chunk)));
 

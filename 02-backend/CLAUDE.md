@@ -35,8 +35,8 @@ lsof -ti:8080 | xargs kill -9
 | `DB_PASSWORD` | DB 비밀번호 | `1234` |
 | `REDIS_HOST` | Redis 호스트 | `localhost` |
 | `REDIS_PORT` | Redis 포트 | `6379` |
-| `AWS_REGION` | AWS 리전 | `ap-northeast-2` |
-| `AWS_COGNITO_USER_POOL_ID` | Cognito User Pool ID | - |
+| `APP_JWT_SECRET` | 자체 JWT 서명 시크릿 (HMAC-SHA256, 최소 32바이트) | - |
+| `GOOGLE_CLIENT_ID` | Google 로그인 OAuth 클라이언트 ID | application.yml 기본값 |
 | `OPENAI_API_KEY` | OpenAI API 키 | - |
 | `OPENAI_MODEL` | OpenAI 모델 ID | `gpt-4o-mini` |
 
@@ -46,7 +46,8 @@ lsof -ti:8080 | xargs kill -9
 - **Spring Boot 4.0 / Spring 7 / JDK 17**
 - **PostgreSQL 18** (로컬) + Flyway 마이그레이션
 - **Redis** (레벨 점수 캐싱, 추후 세션)
-- **AWS Cognito** JWT 인증 (운영), dev 프로필에서 우회
+- **자체 JWT 인증** (jjwt `JwtTokenProvider`로 발급/검증, 운영), dev 프로필에서 우회
+- **Google 로그인** GSI id_token을 백엔드가 Google `tokeninfo`로 직접 검증 후 자체 JWT 발급 (`AuthService`)
 - **OpenAI API** gpt-4o-mini 스트리밍 응답 (`OpenAIService`, JDK HttpClient 사용 — Alpine netty TLS 버그 회피)
 - **SSE (Server-Sent Events)** 실시간 AI 응답 스트림
 - dev 프로필: `MockEvaluator`로 OpenAI API 없이 평가 로직 테스트 가능
@@ -101,9 +102,10 @@ com.fluento
 이벤트 순서: `ai_start` → `level_assessment` → `level_adjustment`(선택) → `ai_chunk`(반복) → `evaluation_start` → `evaluation` → `ai_complete`
 
 ### 인증 흐름
-- **운영**: Cognito JWT → `JwtDecoder` 검증 → `@AuthenticationPrincipal Jwt jwt`
-- **dev**: `Authorization: Bearer dev-token` → 가짜 JwtDecoder → `googleId = "dev-user"` 자동 매핑
-- 컨트롤러에서 userId 추출: `jwt.getSubject()` → `userRepository.findByGoogleId(sub)`
+- **로그인**: 일반(이메일/비번 BCrypt) 또는 Google 로그인(GSI `credential`을 `AuthService.googleLogin`이 Google `tokeninfo`로 검증) → `JwtTokenProvider.generate(userId)`로 자체 JWT 발급
+- **운영**: `Authorization: Bearer <자체 JWT>` → `JwtAuthenticationFilter` → `JwtTokenProvider.getUserId()` 검증 (Cognito/OAuth2 Resource Server 사용 안 함)
+- **dev**: `DevSecurityConfig`가 모든 요청 통과시키고 `googleId = "dev-user"` 유저로 자동 인증
+- JWT subject = `user.id` (DB PK)
 
 ### 난이도 조절 규칙
 - 올리기: 연속 3개 메시지 ≥ 90점
@@ -118,10 +120,10 @@ Flyway가 Spring Boot 4에서 자동 실행 안 되는 이슈 있어 첫 실행 
 psql -d fluento -f src/main/resources/db/migration/V1__Initial_schema.sql
 ```
 
-### AWS 인증 구조
-- **Access Key 발급 불가** — IAM Role만 사용 가능
-- **EC2**: 인스턴스 프로필 `SafeInstanceProfile-sgu-mong` 자동 인증
-- **로컬**: `OPENAI_API_KEY` 설정 시 실 호출 가능, 키 없이는 `dev` 프로필 + `MockEvaluator`/`MockAIService`로 테스트
+### 외부 서비스 인증 (키)
+- **OpenAI**: `OPENAI_API_KEY`(EC2는 `.env`)로 호출. 키 없이는 `dev` 프로필 + `MockEvaluator`/`MockAIService`로 테스트
+- **Google 로그인**: `GOOGLE_CLIENT_ID`로 id_token `aud` 검증 (서버 시크릿 불필요 — id_token만 검증)
+- AWS SDK/Cognito/Bedrock 의존성은 제거됨 (OpenAI API + 자체 JWT로 대체)
 
 ## 알려진 이슈 / 미구현
 

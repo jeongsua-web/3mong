@@ -26,12 +26,17 @@ spring:
       host: localhost
       port: 6379
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/test-pool
-          jwk-set-uri: https://cognito-idp.ap-northeast-2.amazonaws.com/test-pool/.well-known/jwks.json
+app:
+  jwt:
+    secret: test-secret-key-for-unit-tests-only-not-used-in-production-0123456789
+    expiration-ms: 86400000
+
+google:
+  client-id: test-google-client-id
+
+openai:
+  api-key: ""
+  model: gpt-4o-mini
 
 # sentry:
 #   dsn:

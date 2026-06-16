@@ -87,12 +87,6 @@ app:
 google:
   client-id: ${GOOGLE_CLIENT_ID:1095741245664-5gmaspknmej4m45u9mildeqf9behpmhs.apps.googleusercontent.com}
 
-aws:
-  region: ${AWS_REGION:ap-northeast-2}
-  cognito:
-    user-pool-id: ${AWS_COGNITO_USER_POOL_ID:}
-    client-id: ${AWS_COGNITO_CLIENT_ID:}
-
 openai:
   api-key: ${OPENAI_API_KEY:}
   model: ${OPENAI_MODEL:gpt-4o-mini}

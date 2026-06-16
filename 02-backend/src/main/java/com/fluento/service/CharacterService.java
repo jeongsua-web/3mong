@@ -55,6 +55,46 @@ public class CharacterService {
         return CharacterResponse.from(characterRepository.save(character));
     }
 
+    /**
+     * AI가 연기할 캐릭터 페르소나를 영어 시스템 프롬프트 문장으로 생성한다.
+     * 채팅방의 characterId(=DB Character id)로 소유자 캐릭터를 조회한다.
+     * 캐릭터를 찾지 못하면 null을 반환해 호출부가 레벨 기본 프롬프트만 쓰도록 한다.
+     */
+    public String describePersona(Long userId, String characterId) {
+        if (characterId == null || characterId.isBlank()) {
+            return null;
+        }
+        try {
+            Long id = Long.parseLong(characterId.trim());
+            return characterRepository.findByIdAndUserId(id, userId)
+                    .map(this::buildPersona)
+                    .orElse(null);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private String buildPersona(Character c) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are role-playing as the character the learner is chatting with. ");
+        sb.append("Your name is ").append(c.getName()).append(". ");
+        if (c.getGender() != null && !c.getGender().isBlank()) {
+            sb.append("Gender: ").append(c.getGender()).append(". ");
+        }
+        if (c.getRole() != null && !c.getRole().isBlank()) {
+            sb.append("Your role/relationship to the learner: ").append(c.getRole()).append(". ");
+        }
+        if (c.getPersonality() != null && !c.getPersonality().isBlank()) {
+            sb.append("Your personality: ").append(c.getPersonality()).append(". ");
+        }
+        if (c.getMemo() != null && !c.getMemo().isBlank()) {
+            sb.append("Extra context about you: ").append(c.getMemo()).append(". ");
+        }
+        sb.append("Stay fully in character — speak in this persona's voice, ")
+          .append("and choose topics and questions that fit who you are.");
+        return sb.toString();
+    }
+
     @Transactional
     public void deleteCharacter(Long userId, Long characterId) {
         Character character = characterRepository.findByIdAndUserId(characterId, userId)

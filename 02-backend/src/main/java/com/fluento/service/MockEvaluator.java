@@ -39,11 +39,13 @@ public class MockEvaluator implements Evaluator {
 
         Map<String, Object> feedback = isCorrect
                 ? Map.of(
+                        "correctedSentence", userMessage,
                         "grammarIssues", List.of(),
                         "nuanceIssues", List.of(),
                         "positivePoints", List.of("Good sentence! (" + wordCount + " words)"),
                         "overallFeedback", "Well done! Mock score: " + score)
                 : Map.of(
+                        "correctedSentence", "Try writing a longer, more detailed sentence.",
                         "grammarIssues", List.of(Map.of(
                                 "type", "length",
                                 "issue", userMessage,

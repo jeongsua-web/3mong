@@ -77,13 +77,16 @@ public class OpenAIService implements AIService {
               "isCorrect": true|false,
               "score": 0-100,
               "feedback": {
+                "correctedSentence": "...",
                 "grammarIssues": [{"type": "...", "issue": "...", "correction": "...", "explanation": "..."}],
                 "nuanceIssues": [{"type": "...", "context": "...", "suggestion": "..."}],
                 "positivePoints": ["..."],
                 "overallFeedback": "..."
               }
             }
-            All text values in the JSON (issue, correction, explanation, context, suggestion, positivePoints, overallFeedback) MUST be written in Korean.
+            Rules:
+            - "correctedSentence": the full corrected English sentence. If the original is correct, copy it as-is. MUST be in English.
+            - All other text values (issue, correction, explanation, context, suggestion, positivePoints, overallFeedback) MUST be written in Korean.
             """;
 
     private static final Map<Level, String> SYSTEM_PROMPTS = Map.of(
@@ -116,12 +119,39 @@ public class OpenAIService implements AIService {
                     """
     );
 
-    @Override
-    public Flux<String> generateAIResponse(String userMessage, Level level) {
-        String systemPrompt = SYSTEM_PROMPTS.getOrDefault(
+    private static final String OPENING_INSTRUCTION = """
+
+            Now START the conversation yourself. Do NOT wait for the learner to speak first.
+            Greet them briefly and warmly, then immediately introduce ONE specific, interesting
+            topic or ask ONE engaging question to get them talking (e.g. food, travel, hobbies,
+            movies, daily life). Lead the conversation. Keep it within the level rules above and
+            respond in English only.
+            """;
+
+    private String systemPromptFor(Level level) {
+        return SYSTEM_PROMPTS.getOrDefault(
                 level != null ? level : Level.INTERMEDIATE,
                 SYSTEM_PROMPTS.get(Level.INTERMEDIATE));
+    }
 
+    // 캐릭터 페르소나를 레벨 기본 프롬프트 앞에 붙인다 (없으면 레벨 프롬프트만 사용)
+    private String composeSystemPrompt(Level level, String persona) {
+        String base = systemPromptFor(level);
+        return (persona == null || persona.isBlank()) ? base : persona + "\n\n" + base;
+    }
+
+    @Override
+    public Flux<String> generateAIResponse(String userMessage, Level level, String persona) {
+        return streamChat(composeSystemPrompt(level, persona), userMessage);
+    }
+
+    @Override
+    public Flux<String> generateOpeningMessage(Level level, String persona) {
+        return streamChat(composeSystemPrompt(level, persona) + OPENING_INSTRUCTION,
+                "Start the conversation now.");
+    }
+
+    private Flux<String> streamChat(String systemPrompt, String userMessage) {
         return Flux.<String>create(sink -> {
             try {
                 HttpRequest request = buildRequest(systemPrompt, userMessage,

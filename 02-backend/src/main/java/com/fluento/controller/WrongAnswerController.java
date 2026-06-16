@@ -60,13 +60,9 @@ public class WrongAnswerController {
                 Object overall = feedback.get("overallFeedback");
                 if (overall != null) explanation = String.valueOf(overall);
 
-                Object issues = feedback.get("grammarIssues");
-                if (issues instanceof List<?> list && !list.isEmpty()) {
-                    Object first = list.get(0);
-                    if (first instanceof Map<?, ?> issue) {
-                        Object correction = issue.get("correction");
-                        if (correction != null) corrected = String.valueOf(correction);
-                    }
+                Object correctedSentence = feedback.get("correctedSentence");
+                if (correctedSentence != null && !String.valueOf(correctedSentence).isBlank()) {
+                    corrected = String.valueOf(correctedSentence);
                 }
             }
         }

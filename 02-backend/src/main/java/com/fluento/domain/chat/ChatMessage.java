@@ -74,4 +74,8 @@ public class ChatMessage {
         this.score = score;
         this.feedbackJson = feedbackJson;
     }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { getChatRoom, getMessages, sendMessage, getStreamUrl } from '../api/chat';
+import { getChatRoom, getMessages, sendMessage, getStreamUrl, requestInitialMessage } from '../api/chat';
 import { LEARNED_WORDS, DAILY_CHAT_SECONDS_PREFIX, DAILY_LEARNED_WORDS_PREFIX } from '../constants/storage';
+import LevelMeter from '../component/LevelMeter';
+
+const LEVEL_LABELS = { beginner: '초급', intermediate: '중급', advanced: '고급' };
+const LEVEL_ORDER = ['beginner', 'intermediate', 'advanced'];
 
 const AVATAR_COLORS = ['#6366F1', '#0891B2', '#059669', '#B45309', '#BE185D', '#7C3AED'];
 const avatarColor = (name) => AVATAR_COLORS[(name || '?').charCodeAt(0) % AVATAR_COLORS.length];
@@ -12,21 +16,45 @@ const ChatPage = () => {
   const { roomId } = useParams();
   const scrollRef = useRef();
   const sseRef = useRef(null);
+  const openingRequestedRef = useRef(false);
 
   const [roomInfo, setRoomInfo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [correctionData, setCorrectionData] = useState({ original: '', corrected: '', reason: '' });
   const [inputText, setInputText] = useState('');
 
+  // 레벨 시각화 상태
+  const [currentLevel, setCurrentLevel] = useState('beginner');
+  const [recentScores, setRecentScores] = useState([]);
+  const [detected, setDetected] = useState(null);
+  const [adjusting, setAdjusting] = useState(null);
+  const adjustTimerRef = useRef(null);
+
   useEffect(() => {
-    getChatRoom(roomId).then(res => setRoomInfo(res.data.data)).catch(err => console.error(err));
+    getChatRoom(roomId).then(res => {
+      setRoomInfo(res.data.data);
+      if (res.data.data?.currentLevel) setCurrentLevel(res.data.data.currentLevel);
+    }).catch(err => console.error(err));
     getMessages(roomId)
-      .then(res => setMessages(res.data.data.messages.map(m => ({
-        id: m.id, sender: m.senderType?.toLowerCase() === 'user' ? 'user' : 'ai',
-        text: m.content, timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      }))))
+      .then(res => {
+        const history = res.data.data.messages.map(m => ({
+          id: m.id, sender: m.senderType?.toLowerCase() === 'user' ? 'user' : 'ai',
+          text: m.content, timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }));
+        setMessages(history);
+        // 대화 기록이 없으면 AI가 먼저 토픽을 던지며 대화를 시작한다
+        if (history.length === 0 && !openingRequestedRef.current) {
+          openingRequestedRef.current = true;
+          requestInitialMessage(roomId)
+            .then(res => connectSSE(res.data.data.messageId))
+            .catch(err => console.error(err));
+        }
+      })
       .catch(err => console.error(err));
-    return () => sseRef.current?.close();
+    return () => {
+      sseRef.current?.close();
+      clearTimeout(adjustTimerRef.current);
+    };
   }, [roomId]);
 
   useEffect(() => {
@@ -54,12 +82,30 @@ const ChatPage = () => {
       aiText += JSON.parse(e.data).content;
       setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: aiText } : m));
     });
+    es.addEventListener('level_assessment', e => {
+      const a = JSON.parse(e.data).assessment;
+      if (a) setDetected({ level: a.detectedLevel, confidence: a.confidence });
+    });
     es.addEventListener('evaluation', e => {
-      const issues = JSON.parse(e.data).feedback?.grammarIssues;
+      const data = JSON.parse(e.data);
+      if (typeof data.score === 'number') {
+        // 최근 5개만 유지 (백엔드 MAX_SCORES와 동일)
+        setRecentScores(prev => [...prev, data.score].slice(-5));
+      }
+      const issues = data.feedback?.grammarIssues;
       if (issues?.length > 0) {
         const c = { original: issues[0].issue, corrected: issues[0].correction, reason: issues[0].explanation };
         setCorrectionData(c);
       }
+    });
+    es.addEventListener('level_adjustment', e => {
+      const { from, to } = JSON.parse(e.data);
+      const direction = LEVEL_ORDER.indexOf(to) > LEVEL_ORDER.indexOf(from) ? 'up' : 'down';
+      setCurrentLevel(to);
+      setRecentScores([]); // 백엔드가 레벨 변경 시 점수 이력 초기화
+      setAdjusting({ direction, label: LEVEL_LABELS[to] ?? to });
+      clearTimeout(adjustTimerRef.current);
+      adjustTimerRef.current = setTimeout(() => setAdjusting(null), 4000);
     });
     es.addEventListener('ai_complete', () => es.close());
     es.onerror = () => es.close();
@@ -91,7 +137,17 @@ const ChatPage = () => {
   const charName = roomInfo?.characterName ?? '...';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+
+      {/* 레벨 시각화 (우측 상단) */}
+      <div style={{ position: 'absolute', top: 12, right: 16, zIndex: 20 }}>
+        <LevelMeter
+          currentLevel={currentLevel}
+          recentScores={recentScores}
+          detected={detected}
+          adjusting={adjusting}
+        />
+      </div>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 20px', height: 64, background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>

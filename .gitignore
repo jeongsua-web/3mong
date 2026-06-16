@@ -36,3 +36,6 @@ logs/
 
 # ===== Tooling junk =====
 .playwright-mcp/
+
+# ===== 비코드 자료 (발표·논문·리소스 — 레포에서 제외) =====
+_archive/

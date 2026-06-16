@@ -20,9 +20,20 @@ public class MockAIService implements AIService {
             "together and ", "improve your English!"
     );
 
+    private static final List<String> MOCK_OPENING_CHUNKS = List.of(
+            "Hi! ", "I'm Sarah. ", "Let's talk ", "about food today. ",
+            "What did ", "you eat ", "for breakfast ", "this morning?"
+    );
+
     @Override
-    public Flux<String> generateAIResponse(String userMessage, Level level) {
+    public Flux<String> generateAIResponse(String userMessage, Level level, String persona) {
         return Flux.fromIterable(MOCK_RESPONSE_CHUNKS)
+                .delayElements(Duration.ofMillis(80));
+    }
+
+    @Override
+    public Flux<String> generateOpeningMessage(Level level, String persona) {
+        return Flux.fromIterable(MOCK_OPENING_CHUNKS)
                 .delayElements(Duration.ofMillis(80));
     }
 }
