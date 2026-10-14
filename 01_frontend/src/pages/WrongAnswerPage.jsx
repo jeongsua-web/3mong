@@ -71,7 +71,7 @@ const WrongAnswerPage = () => {
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)', wordBreak: 'break-word' }}>"{note.corrected}"</span>
               </div>
 
-              <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.6, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.6, paddingTop: 10, borderTop: '1px solid var(--border)', whiteSpace: 'pre-line' }}>
                 {note.reason}
               </div>
             </div>

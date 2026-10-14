@@ -60,18 +60,15 @@ public class CharacterService {
      * 채팅방의 characterId(=DB Character id)로 소유자 캐릭터를 조회한다.
      * 캐릭터를 찾지 못하면 null을 반환해 호출부가 레벨 기본 프롬프트만 쓰도록 한다.
      */
-    public String describePersona(Long userId, String characterId) {
-        if (characterId == null || characterId.isBlank()) {
+    public String describePersona(Long userId, Long characterId) {
+        if (characterId == null) {
             return null;
         }
-        try {
-            Long id = Long.parseLong(characterId.trim());
-            return characterRepository.findByIdAndUserId(id, userId)
-                    .map(this::buildPersona)
-                    .orElse(null);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        // 사용자 소유 캐릭터를 우선 조회하고, 없으면 전역 추천 캐릭터(user_id IS NULL)를 조회한다.
+        return characterRepository.findByIdAndUserId(characterId, userId)
+                .or(() -> characterRepository.findByIdAndIsRecommendedTrue(characterId))
+                .map(this::buildPersona)
+                .orElse(null);
     }
 
     private String buildPersona(Character c) {

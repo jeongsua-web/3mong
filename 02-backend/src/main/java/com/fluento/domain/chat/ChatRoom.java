@@ -32,8 +32,9 @@ public class ChatRoom {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private String characterId;
+    // characters.id 를 가리키는 FK. 연결 불가한 레거시/추천 캐릭터의 경우 null 가능.
+    @Column(name = "character_id")
+    private Long characterId;
 
     @Column(nullable = false)
     private String characterName;

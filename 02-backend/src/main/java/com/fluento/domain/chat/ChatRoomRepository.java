@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 
-    boolean existsByUserIdAndCharacterId(Long userId, String characterId);
+    boolean existsByUserIdAndCharacterId(Long userId, Long characterId);
 
     Page<ChatRoom> findByUserId(Long userId, Pageable pageable);
 

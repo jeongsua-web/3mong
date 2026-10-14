@@ -28,7 +28,7 @@ public record ChatRoomResponse(
         return ChatRoomResponse.builder()
                 .id(room.getId())
                 .userId(room.getUser().getId())
-                .characterId(room.getCharacterId())
+                .characterId(room.getCharacterId() == null ? null : String.valueOf(room.getCharacterId()))
                 .characterName(room.getCharacterName())
                 .title(room.getTitle())
                 .isPinned(room.getIsPinned())

@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface CharacterRepository extends JpaRepository<Character, Long> {
     List<Character> findAllByUserIdOrderByCreatedAtDesc(Long userId);
     Optional<Character> findByIdAndUserId(Long id, Long userId);
+    Optional<Character> findByIdAndIsRecommendedTrue(Long id);
 }

@@ -17,7 +17,7 @@ public class Character {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    // 추천(전역) 캐릭터는 소유자가 없어 null. 일반 캐릭터는 소유 user id.
     private Long userId;
 
     @Column(nullable = false)
@@ -39,6 +39,11 @@ public class Character {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isFavorite = false;
+
+    // 전역 추천 캐릭터 여부 (소유자 없는 시드 데이터)
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isRecommended = false;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

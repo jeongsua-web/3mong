@@ -27,7 +27,9 @@ public class ChatRoomService {
 
     @Transactional
     public ChatRoom createChatRoom(Long userId, String characterId, String characterName, String title) {
-        if (chatRoomRepository.existsByUserIdAndCharacterId(userId, characterId)) {
+        Long charId = parseCharacterId(characterId);
+
+        if (chatRoomRepository.existsByUserIdAndCharacterId(userId, charId)) {
             throw new ChatRoomAlreadyExistsException(characterId);
         }
 
@@ -40,11 +42,26 @@ public class ChatRoomService {
 
         return chatRoomRepository.save(ChatRoom.builder()
                 .user(user)
-                .characterId(characterId)
+                .characterId(charId)
                 .characterName(characterName)
                 .title(roomTitle)
                 .currentLevel(Level.BEGINNER)
                 .build());
+    }
+
+    /**
+     * 클라이언트가 보낸 characterId 문자열을 characters.id(BIGINT) 로 변환한다.
+     * 추천 캐릭터(1~6)와 저장 캐릭터 모두 숫자 id 이므로, 비숫자 값은 더 이상 허용하지 않는다.
+     */
+    private Long parseCharacterId(String characterId) {
+        if (characterId == null || characterId.isBlank()) {
+            throw new IllegalArgumentException("characterId must not be blank");
+        }
+        try {
+            return Long.parseLong(characterId.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("characterId must be a numeric character id: " + characterId);
+        }
     }
 
     public Page<ChatRoom> getChatRoomsByUserId(Long userId, Boolean pinned, int limit, int offset) {
